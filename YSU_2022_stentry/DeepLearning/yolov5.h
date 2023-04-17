@@ -33,7 +33,7 @@
 #include <vector>
 #include <chrono>
 
-#define DEBUG // 调试模式
+// #define DEBUG // 调试模式
 
 using namespace std;
 using namespace cv;
@@ -92,13 +92,13 @@ class Yolov5{
 
     void init_yolov5_detector();        // init detector class
 
-    void detect_yolov5(cv::Mat src_);   // detect function
+    vector<DetectRect>& detect_yolov5(cv::Mat& src_);   // detect function
 
     void show_res();
 
     private:
 
-    vector<DetectRect>& infer2res(cv::Mat& src_);      // Mat yuchuli
+    std::vector<DetectRect>& infer2res(cv::Mat& src_);      // Mat yuchuli
 
     void image_pre_processing(cv::Mat& src_);
 
@@ -108,7 +108,7 @@ class Yolov5{
 
     float get_IOU(cv::Point);
 
-    void draw_res(cv::Mat &src_);
+    void draw_res();
 
     void clear_work();
 };

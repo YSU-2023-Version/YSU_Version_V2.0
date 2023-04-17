@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-#define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
+// #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
 
 #define DEBUG 1
 
@@ -21,7 +21,7 @@ vector<cv::RotatedRect> ArmorDetector::record_history_arr;
 float get_angle(const cv::Point2f &a,const cv::Point2f &b)
 {
     float dx=a.x-b.x;
-    if(fabs(dx)<0.1)return -90;
+    if(fabs(dx)<0.1) return -90;
     float dy=a.y-b.y;
     return atanf(dy/dx)*180/CV_PI;
 }
@@ -90,15 +90,15 @@ void ArmorDetector::InitArmor()
 cout<<"armor_xml loading finished"<<endl;
 
          for(int i=0;i<8;i++){
-         p_kal.emplace_back(std::make_unique<Kalman_t>());
-         p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
+             p_kal.emplace_back(std::make_unique<Kalman_t>());
+             p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
          }
 
          p_svm->InitSVM();
 
         record_history_arr.clear();
 #ifndef USE_OLD_DETECTOR
-        this->yolov5_detector_ = new Yolov5(); // 创建yolov5detector对象
+        this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
         this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
 #endif  // 这个部分可能会消耗比较多的时间, 但是是正常现象
         cout<<"armor_detector init finished"<<endl;
@@ -106,10 +106,8 @@ cout<<"armor_xml loading finished"<<endl;
 
 void ArmorDetector::LoadImage(cv::Mat &frame)
 {
-    
     src_image_=frame;
     src_image_copy=frame.clone();
-
 }
 
 void ArmorDetector::PretreatImage(){
@@ -154,16 +152,16 @@ void ArmorDetector::PretreatImage(){
         cv::Mat diff[3];//分离后的单通道图像,填函数的输出数组或者输出的vector容器
         cv::split(src_image_,diff); //分离通道 BGR
         cvtColor(src_image_,thre_whole,CV_BGR2GRAY);
-        threshold(thre_whole,thre_whole,80,255,cv::THRESH_BINARY);
+        threshold(thre_whole,thre_whole,70,255,cv::THRESH_BINARY);
 
 
 //        cv::imshow("thre_whole",thre_whole);
 
 
          addWeighted(diff[2],1,diff[0],-1,0,thre_image_);
-        //subtract(diff[2],diff[0],thre_image_);//  2
+        //subtract(diff[2],diff[0],thre_image_); //  2
 
-        threshold(thre_image_,thre_image_,100,255,cv::THRESH_BINARY);
+        threshold(thre_image_,thre_image_,90,255,cv::THRESH_BINARY);
 //        cv::imshow("thre_image_",thre_image_);
 
         dilate(thre_image_,thre_image_,element);
@@ -237,8 +235,6 @@ void ArmorDetector::DetectLightBar(){
 //            float dy_0to2=fabs(pt[2].y-pt[0].y);
 
             light_bars_.push_back(rect);
-
-
         }
     }
 }
@@ -489,6 +485,20 @@ void ArmorDetector::Show(){
 #endif
 }
 
+/**
+ * @brief ArmorDetector::Yolov2Res
+ * @details yolov5识别器，处理完成之后的结果将存到match_armors_的vector中
+ */
+void ArmorDetector::Yolov2Res(){
+    this->detect_res_armor_ = this->yolov5_detector_->detect_yolov5(src_image_copy); // 模型推理到结果
+    for(auto item : this->detect_res_armor_){ // 遍历识别到的结果
+        cv::RotatedRect r_rect_ = cv::minAreaRect(item.points);
+        this->match_armors_.push_back(r_rect_); // 将rect转换成RotatedRect
+    }
+}
+
+
+
 vector<Point2d>& ArmorDetector::DetectObjectArmor(){
     // old detector
 #ifdef USE_OLD_DETECTOR
@@ -497,8 +507,9 @@ vector<Point2d>& ArmorDetector::DetectObjectArmor(){
     DetectArmor();
     // new detector  ==> yolov5 deeplearning
 #else
-    ScreenArmor();
+    Yolov2Res();
 #endif
+    ScreenArmor();
     ClearAll();
 
     return target_armor_point_set;

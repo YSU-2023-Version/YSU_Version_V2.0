@@ -14,6 +14,7 @@ public:
     friend cv::VideoWriter;
     ArmorDetector();
     vector<cv::Point2d>& DetectObjectArmor();
+    void Yolov2Res();
     void InitArmor();
     void LoadImage(cv::Mat &frame);
     void PretreatImage();

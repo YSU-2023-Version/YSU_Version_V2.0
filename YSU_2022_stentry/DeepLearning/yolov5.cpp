@@ -9,51 +9,15 @@
 // #define DEBUG
 #define WINDOW_NAME "res_show"
 
-std::vector<float> anchors = {
-    10,13, 16,30, 33,23,
-    30,61, 62,45, 59,119,
-    116,90, 156,198, 373,326
-};
-
-int get_anchor_index(int scale_w, int scale_h) {
-    if (scale_w == 20) {
-        return 12;
-    }
-    if (scale_w == 40) {
-        return 6;
-    }
-    if (scale_w == 80) {
-        return 0;
-    }
-    return -1;
-}
-
-float get_stride(int scale_w, int scale_h) {
-    if (scale_w == 20) {
-        return 32.0;
-    }
-    if (scale_w == 40) {
-        return 16.0;
-    }
-    if (scale_w == 80) {
-        return 8.0;
-    }
-    return -1;
-}
-
 float sigmoid_function(float a)
 {
     float b = 1. / (1. + exp(-a));
     return b;
 }
 
-
-
-
-
 Yolov5::Yolov5(){
-    this->m_xml_path = "./best.xml";
-    this->m_bin_path = "./best.bin";
+    this->m_xml_path = "../model/best.xml";
+    this->m_bin_path = "../model/best.bin";
 }
 
 // create function to define some element, change the xml some time
@@ -63,8 +27,6 @@ Yolov5::Yolov5(std::string xml_path, std::string bin_path, int input_width, int 
     this->m_input_height = input_height;
     this->m_input_width = input_width;
 }
-
-
 
 
 
@@ -111,7 +73,7 @@ void Yolov5::read_network(){
     }
 
     // 指定GPU插件名称
-    std::string device_name = "GPU";
+    std::string device_name = "CPU";
     this->m_executable_network = m_ie.LoadNetwork(network, device_name);
 }
 
@@ -261,7 +223,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence > 0.55) {
+        if(confidence > 0.35) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
@@ -362,17 +324,17 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
     }
 
     #ifdef DEBUG
-    this->draw_res(src_);
+    this->draw_res();
     std::cout << "num: " << sum << std::endl;
     cv::imshow("dst_image", m_src_image);
-    cv::waitKey(0);
+    cv::waitKey(1);
     #endif // DEBUG 调试最终得到的点
 
     return res_rects;
 
 }
 
-void Yolov5::draw_res(cv::Mat &src_){
+void Yolov5::draw_res(){
     // iterate the res rect
     for(auto item_res_rect : res_rects){
         cv::Point p01 = item_res_rect.points[0]; // zuo shang
@@ -394,12 +356,12 @@ void Yolov5::draw_res(cv::Mat &src_){
 }
 
 
-void Yolov5::detect_yolov5(cv::Mat src_){
+vector<DetectRect>& Yolov5::detect_yolov5(cv::Mat& src_){
     this->m_src_image = src_;
-    this->m_src_image.copyTo(m_src_copy_image);
-    this->infer2res(m_src_copy_image);
+//    this->m_src_image.copyTo(m_src_copy_image);
+//    this->infer2res(m_src_copy_image);
     // 优化改成
-    //this->infer2res(m_src_image);
+    return infer2res(m_src_image); // 添加到qt项目中不需要copy
 }
 
 
