@@ -1,0 +1,9 @@
+#!/bin/bash
+rm -r ./debug_shortcut
+mkdir ./debug_shortcut
+chmod 777 ./debug_shortcut
+#cd ./debug_shortcut
+#rm *.jpg
+#cd ../
+sudo ./YSU_2022_Sentry
+

@@ -1,0 +1,4 @@
+Log file created at: 2021/03/22 18:48:15
+Running on machine: mazixi-Legion-Y7000-2019-PG0
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0322 18:48:15.167104  6545 MVCameraBase.cpp:98] Device:(name:MV-SUA133GC#0 sn:049032410170)Lost
