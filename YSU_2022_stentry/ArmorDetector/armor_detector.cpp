@@ -2,8 +2,7 @@
 #include "ArmorDetector/armor_detector.h"
 #include "Pose/angle_solver.h"
 #include  <time.h>
-
-// #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
+//  #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
 
 #define DEBUG 1
 

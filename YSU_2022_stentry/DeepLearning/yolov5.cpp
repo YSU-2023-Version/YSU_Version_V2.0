@@ -73,7 +73,7 @@ void Yolov5::read_network(){
     }
 
     // 指定GPU插件名称
-    std::string device_name = "CPU";
+    std::string device_name = "GPU";
     this->m_executable_network = m_ie.LoadNetwork(network, device_name);
 }
 
@@ -250,7 +250,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             float class_p = output_data[box_class + basic_pos];
             float color_p = output_data[box_color + basic_pos];
             // 如果最大的类别置信度过低，就舍去
-            if(class_p < 0.3) continue;
+            if(class_p < 0.6) continue;
 
             #ifdef DEBUG
             cv::circle(this->m_src_image, cv::Point(x_1, y_1), 3, cv::Scalar(0, 255, 0), 2);
@@ -312,7 +312,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 
                 float IOU_with_the_max = (float)intersectionArea / or_space;
                 // 如果IOU过大就将其舍去
-                if(IOU_with_the_max >= 0.90) {
+                if(IOU_with_the_max >= 0.85) {
                     flag = false;
                     break;
                 }

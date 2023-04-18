@@ -39,10 +39,10 @@ LIBS += /usr/local/lib/libopencv_calib3d.so \
 /home/zjw/1/lib/x64/libMVSDK.so \
 /usr/local/lib/libgsl.so \
 /usr/local/lib/libgslcblas.so \
+/home/zjw/intel/openvino_2022.1.0.643/runtime/lib/intel64/libopenvino.so \
 -L/home/zjw/intel/openvino_2022.1.0.643/runtime/lib/intel64 -lopenvino
 #                                                -lngraph \
 #                                                -ltbb \
-
 
 
 HEADERS += \
