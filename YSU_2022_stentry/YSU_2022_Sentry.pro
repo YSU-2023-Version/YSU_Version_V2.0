@@ -15,6 +15,7 @@ INCLUDEPATH += /usr/local/include \
 #/home/nano/linuxSDK_V2.1.0.2/include \
 /usr/local/opencv/linuxsdk/include \
 /usr/local/include/gsl \
+# 需要自行修改的库
 /home/zjw/intel/openvino_2022.1.0.643/runtime/include \
 /home/zjw/intel/openvino_2022.1.0.643/runtime/include/ie \
 /home/zjw/intel/openvino_2022.1.0.643/runtime/include/ngraph \
@@ -36,9 +37,10 @@ LIBS += /usr/local/lib/libopencv_calib3d.so \
 /usr/local/lib/libopencv_videoio.so \
 /usr/local/lib/libopencv_video.so \
 /usr/local/lib/libopencv_videostab.so\
-/home/zjw/1/lib/x64/libMVSDK.so \
+/home/zjw/1/lib/x64/libMVSDK.so \ # 修改
 /usr/local/lib/libgsl.so \
 /usr/local/lib/libgslcblas.so \
+# 自行根据微机的库的位置修改
 /home/zjw/intel/openvino_2022.1.0.643/runtime/lib/intel64/libopenvino.so \
 -L/home/zjw/intel/openvino_2022.1.0.643/runtime/lib/intel64 -lopenvino
 #                                                -lngraph \
