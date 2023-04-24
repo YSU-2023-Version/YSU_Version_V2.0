@@ -13,9 +13,15 @@
 #include <condition_variable>
 #include <algorithm>
 #include <cmath>
+#include <opencv2/aruco.hpp>
+#include <cstring>
+#include <opencv2/dnn.hpp>
+#include <inference_engine.hpp>
+#include <vector>
+#include <chrono>
 
-
-#define ENEMY_COLOR_IS_RED 1
+// 注释掉代表识别蓝色，不注释识别红色
+#define ENEMY_COLOR_IS_RED
 
 using namespace std;
 using namespace cv;

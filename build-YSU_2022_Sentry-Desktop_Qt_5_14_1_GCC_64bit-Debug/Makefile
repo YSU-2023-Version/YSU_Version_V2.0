@@ -272,7 +272,6 @@ DIST          = /opt/5.14.1/gcc_64/mkspecs/features/spec_pre.prf \
 		/opt/5.14.1/gcc_64/mkspecs/features/qt_config.prf \
 		/opt/5.14.1/gcc_64/mkspecs/linux-g++/qmake.conf \
 		/opt/5.14.1/gcc_64/mkspecs/features/spec_post.prf \
-		../YSU_2022_stentry/.qmake.stash \
 		/opt/5.14.1/gcc_64/mkspecs/features/exclusive_builds.prf \
 		/opt/5.14.1/gcc_64/mkspecs/features/toolchain.prf \
 		/opt/5.14.1/gcc_64/mkspecs/features/default_pre.prf \
@@ -519,7 +518,6 @@ Makefile: ../YSU_2022_stentry/YSU_2022_Sentry.pro /opt/5.14.1/gcc_64/mkspecs/lin
 		/opt/5.14.1/gcc_64/mkspecs/features/qt_config.prf \
 		/opt/5.14.1/gcc_64/mkspecs/linux-g++/qmake.conf \
 		/opt/5.14.1/gcc_64/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		/opt/5.14.1/gcc_64/mkspecs/features/exclusive_builds.prf \
 		/opt/5.14.1/gcc_64/mkspecs/features/toolchain.prf \
 		/opt/5.14.1/gcc_64/mkspecs/features/default_pre.prf \
@@ -727,7 +725,6 @@ Makefile: ../YSU_2022_stentry/YSU_2022_Sentry.pro /opt/5.14.1/gcc_64/mkspecs/lin
 /opt/5.14.1/gcc_64/mkspecs/features/qt_config.prf:
 /opt/5.14.1/gcc_64/mkspecs/linux-g++/qmake.conf:
 /opt/5.14.1/gcc_64/mkspecs/features/spec_post.prf:
-.qmake.stash:
 /opt/5.14.1/gcc_64/mkspecs/features/exclusive_builds.prf:
 /opt/5.14.1/gcc_64/mkspecs/features/toolchain.prf:
 /opt/5.14.1/gcc_64/mkspecs/features/default_pre.prf:

@@ -1,5 +1,5 @@
 #include"SVM/svm.h"
-#define DEBUG
+// #define DEBUG
 static int i =0;
 
 /*

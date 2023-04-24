@@ -1,8 +1,0 @@
-Log file created at: 2023/04/18 23:42:16
-Running on machine: zjw-NUC7i7DNHE
-Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
-E0418 23:42:16.031572  6180 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049010410093
-E0418 23:42:17.438710  6180 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049010410093
-E0418 23:42:18.842664  6180 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049010410093
-E0418 23:42:20.246577  6180 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049010410093
-E0418 23:42:21.650534  6180 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049010410093

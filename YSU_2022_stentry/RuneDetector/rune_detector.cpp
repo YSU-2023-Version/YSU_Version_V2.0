@@ -1,9 +1,9 @@
 #include "Main/headfiles.h"
 #include "RuneDetector/rune_detector.h"
 
-#ifndef DEBUG
-#define DEBUG
-#endif // !DEBUG
+//#ifndef DEBUG
+//#define DEBUG
+//#endif // !DEBUG
 
 
 

@@ -94,10 +94,6 @@ bool Yolov5::is_allready()
 void Yolov5::clear_work(){
     this->res_rects.clear();
 }
-
-void image_pre_processing(cv::Mat& src_){
-
-}
 /**
  * @brief 主要模型推理的函数
  * @author 可莉不知道哦
@@ -134,9 +130,6 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             }
         }
     }
-    #ifdef RED_ENERMY
-    cvtColor(src_, src_, cv::COLOR_BGR2RGB);
-    #endif
 
     if(scale_x < 1){
         cv::copyMakeBorder(src_, src_, 0, 0, 0, this->m_input_width - src_.cols, BORDER_CONSTANT, cv::Scalar(0, 0, 0));
@@ -223,7 +216,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence > 0.35) {
+        if(confidence > 0.38) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
@@ -236,21 +229,31 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 
             for(int j = 0;j < 21;j++) demo[j] = output_data[basic_pos + j];
 
-            // 获得最大概率的类别和颜色，取值 8 or 9
+            // 获得最大概率的类别和颜色，取值 9 or 10 or 11        red : 10 blue : 9 dead : 11
             int box_color = -1;
-            for(int j = 8;j <= 9;j++){
-                if(box_color  == -1 || output_data[box_color + basic_pos] < output_data[j + basic_pos]) box_color = j - basic_pos;
+            for(int j = 9;j <= 11;j++){
+                if(box_color  == -1 || output_data[box_color + basic_pos] < output_data[j + basic_pos]) box_color = j;
             }
             // 类别索引
             int box_class = -1;
-            for(int j = 10;j < 21;j++){
+            for(int j = 12;j < 21;j++){
                 if(box_class  == -1 || output_data[box_class + basic_pos] < output_data[j + basic_pos]) box_class = j;
             }
             // 类别置信度
             float class_p = output_data[box_class + basic_pos];
             float color_p = output_data[box_color + basic_pos];
             // 如果最大的类别置信度过低，就舍去
-            if(class_p < 0.6) continue;
+
+            if(box_color ==  11) { // dead
+                continue;
+            }
+            if(box_color == 9){ // blue not
+                continue;
+            }
+//            if(box_color == 10){ // red not
+//                continue;
+//            }
+            if(class_p  * confidence < 0.35) continue;
 
             #ifdef DEBUG
             cv::circle(this->m_src_image, cv::Point(x_1, y_1), 3, cv::Scalar(0, 255, 0), 2);
@@ -312,7 +315,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 
                 float IOU_with_the_max = (float)intersectionArea / or_space;
                 // 如果IOU过大就将其舍去
-                if(IOU_with_the_max >= 0.85) {
+                if(IOU_with_the_max >= 0.83) {
                     flag = false;
                     break;
                 }

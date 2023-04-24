@@ -4,7 +4,7 @@
 #include  <time.h>
 //  #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
 
-#define DEBUG 1
+ //#define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -145,47 +145,6 @@ void ArmorDetector::PretreatImage(){
     cv::Mat element = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
     cv::Mat element2 = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(3,3));
 
-    if(ENEMY_COLOR_IS_RED)
-    {//Red
-        cv::Mat thre_whole;
-        cv::Mat diff[3];//分离后的单通道图像,填函数的输出数组或者输出的vector容器
-        cv::split(src_image_,diff); //分离通道 BGR
-        cvtColor(src_image_,thre_whole,CV_BGR2GRAY);
-        threshold(thre_whole,thre_whole,70,255,cv::THRESH_BINARY);
-
-
-//        cv::imshow("thre_whole",thre_whole);
-
-
-         addWeighted(diff[2],1,diff[0],-1,0,thre_image_);
-        //subtract(diff[2],diff[0],thre_image_); //  2
-
-        threshold(thre_image_,thre_image_,90,255,cv::THRESH_BINARY);
-//        cv::imshow("thre_image_",thre_image_);
-
-        dilate(thre_image_,thre_image_,element);
-        thre_image_ = thre_whole & thre_image_;
-        dilate(thre_image_,thre_image_,element2);
-    }//  3
-    else
-    {//Blue
-        cv::Mat thre_whole;
-        cv::Mat diff[3];//分离后的单通道图像
-        cv::split(src_image_,diff); //分离通道 BGR
-        cvtColor(src_image_,thre_whole,CV_BGR2GRAY);
-        threshold(thre_whole,thre_whole,170,255,cv::THRESH_BINARY);
-
-
-
-        addWeighted(diff[0],1,diff[2],-0.70,0,thre_image_);
-//        subtract(diff[0],diff[2],thre_image_);
-
-        cv::threshold(thre_image_,thre_image_,130,255,cv::THRESH_BINARY);
-        dilate(thre_image_,thre_image_,element);
-        thre_image_ = thre_whole & thre_image_;
-        dilate(thre_image_,thre_image_,element2);
-
-    }
 //     cv::waitKey(1);
 }
 

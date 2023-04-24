@@ -24,14 +24,8 @@
 #ifndef YOLOV5
 #define YOLOV5
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
-#include <iostream>
-#include <cstring>
-#include <opencv2/dnn.hpp>
-#include <inference_engine.hpp>
-#include <vector>
-#include <chrono>
+
+#include "Main/headfiles.h"
 
 // #define DEBUG // 调试模式
 

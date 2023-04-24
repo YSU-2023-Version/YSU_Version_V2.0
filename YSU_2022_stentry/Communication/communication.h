@@ -1,10 +1,3 @@
-/*
-@auther：曹沥壬
-通信类，已与电控进行多机验证，适应性良好。
-仅需修改通信协议对应位即可在步兵1，步兵2，哨兵，英雄上运行。
-*/
-
-
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 typedef signed char        int8_t;

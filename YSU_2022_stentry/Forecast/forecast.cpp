@@ -13,7 +13,7 @@
 #include "Forecast/forecast.h"
 #include "Timer/Timer.h"
 
-#define DEBUG 1
+// #define DEBUG 1
 Mat show;
 double getDistance(const Point2f &a,const Point2f &b)
 {
@@ -101,8 +101,13 @@ bool rect_line_intersection(const vector<Point2d> & line, const vector<Point2d>&
 Forecast::Forecast()
 {};
 
+  //Cv_Kalman_t kalman_p;
+  //Cv_Kalman_t kalman_v;
+
 void Forecast::Init()
 {
+
+
     cout<<"forecast init begin"<<endl;
     string file_path="../xml_path/forecast.xml";
     FileStorage fr;
