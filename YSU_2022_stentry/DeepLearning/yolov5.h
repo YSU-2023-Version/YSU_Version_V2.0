@@ -1,23 +1,21 @@
 /**
- * @anchor FoPluto
+ * @anchor 可莉不知道哦
  * @brief 模型结构：Yolox，参考沈航的模型，之后自己打算改一个face模型，
  * 		输入信息[1, 3, 416, 416]，代码内部自动resize，并且映射到原始图像，
  * 		输出信息[1, 3549, 21]，3549个锚框。
  * 		锚框分为三种：grid = {8, 16, 32}，分别对于框的大小，
  * 		每个框有21个参数：
- * 			0~7：装甲板四个点位置； 8：物体置信度； 9：颜色置信度； 10-20:11个类别
+ * 			0~7：装甲板四个点位置； 8：物体置信度； 9-11：颜色置信度； 12-20:9个类别；
  * 		类别分布：
  * 			idx            name
- * 			10：           class_1
- * 			11：           class_2
- * 			12：		      class_3
- * 			13：           class_4
- * 			14：
- * 			15：
- * 			16：
- * 			17：
- * 			18：
- * 			19：
+ * 			12：		   哨兵
+ * 			13：           英雄
+ * 			14：           工程
+ * 			15：           3号步兵
+ * 			16：           4号步兵
+ * 			17：           5号步兵
+ * 			18：           前哨站
+ * 			19：           基地
  * 			20：
 */
 
@@ -34,8 +32,6 @@ using namespace cv;
 using namespace cv::dnn;
 using namespace InferenceEngine;
 
-// define red as enermy
-// #define RED_ENERMY
 
 // yolov5_detector
 
@@ -74,11 +70,11 @@ class Yolov5{
     float threshold;                                             // 置信度阈值标准
 
     int class_num;                                               // 模型输出的类别数量
-    int color_num;
+    int color_num;                                               // 模型输出的颜色种类数量
 
     std::vector<DetectRect> res_rects;                           // 结果Rect的存储容器
 
-    std::string * class_idx_map;                      // 类别名称对应的索引值
+    std::string * class_idx_map;                                 // 类别名称对应的索引值
     public:
 
     Yolov5();                           //
