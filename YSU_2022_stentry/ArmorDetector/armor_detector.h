@@ -6,6 +6,16 @@
 #include "SVM/svm.h"
 #include "DeepLearning/yolov5.h"
 
+/**
+ * 一个存RotatedRect一个存vector<Point2d>,一个方便用于筛选装甲板，一个方便用于仿射变换
+*/
+struct Rect_VectorPoint {
+    /* data */
+    std::vector<cv::Point2d> points;
+    cv::RotatedRect rect;
+};
+
+
 
 #define POINT_DIST(p1,p2) std::sqrt((p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y))
 class ArmorDetector
@@ -37,10 +47,10 @@ private:
     cv::Point2f Perspective_Transformation_dst[4];                  // ????
     cv::Point2f lu, ld, ru, rd;                                     // 四个角点
 
-    std::vector<cv::RotatedRect> match_armors_;                     // Match to armor plate set.
+    std::vector<Rect_VectorPoint> match_armors_;                    // Match to armor plate set.
     std::vector<cv::Point2d> target_armor_point_set;                // 
 
-    int index1;                                                     //????
+    int index1;                                                     // ????
     int fps;                                                        // 帧率
 
     std::vector<int> object_num;                                    // 历史目标数量
