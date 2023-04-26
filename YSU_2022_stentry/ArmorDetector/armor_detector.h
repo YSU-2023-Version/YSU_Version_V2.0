@@ -17,46 +17,33 @@ public:
     void Yolov2Res();
     void InitArmor();
     void LoadImage(cv::Mat &frame);
-    void PretreatImage();
-    void DetectLightBar();
-    void DetectArmor();
     void ScreenArmor();
     void ClearAll();
     void Show();
     void baocun();
     void PerspectiveTransformation();
     cv::RotatedRect boundingRRect(const cv::RotatedRect & left, const cv::RotatedRect & right);
-   // void SVM_pretreatImage();
     cv::VideoWriter writer;
-    //bool RotatedRectsort(const cv::RotatedRect &a1,const cv::RotatedRect &a2);
 
 private:
 
-    Yolov5* yolov5_detector_; // yolov5 detector.
+    Yolov5* yolov5_detector_;                                       // yolov5 detector.
 
-    std::vector<DetectRect> detect_res_armor_; // res rects
+    std::vector<DetectRect> detect_res_armor_;                      // res rects
 
-    cv::Mat src_image_; // Source image.
+    cv::Mat src_image_;                                             // Source image.
+    cv::Mat warpPerspective_dst;                                    // cnn????
+    cv::Point2f Perspective_Transformation_src[4];                  // ????
+    cv::Point2f Perspective_Transformation_dst[4];                  // ????
+    cv::Point2f lu, ld, ru, rd;                                     // 四个角点
 
-    cv::Mat thre_image_; // Preprocessed image.
-    cv::Mat warpPerspective_mat=cv::Mat::zeros(3,3,CV_32FC1);//??????
+    std::vector<cv::RotatedRect> match_armors_;                     // Match to armor plate set.
+    std::vector<cv::Point2d> target_armor_point_set;                // 
 
-    cv::Mat warpPerspective_dst;//cnn????
-    cv::Point2f Perspective_Transformation_src[4];//????
-    cv::Point2f Perspective_Transformation_dst[4];//????
-    cv::Point2f lu, ld, ru, rd;
+    int index1;                                                     //????
+    int fps;                                                        // 帧率
 
-
-
-    std::vector<cv::RotatedRect> light_bars_; // Light strip set.
-    std::vector<cv::RotatedRect> match_armors_; // Match to armor plate set.
-    std::vector<cv::Point2d> target_armor_point_set;
-
-    int index1; //????
-    int fps;
-\
-
-    std::vector<int> object_num;//????????
+    std::vector<int> object_num;                                    // 历史目标数量
     cv::Ptr<cv::ml::SVM> svm;
     int blue_color_threshold;
     int red_color_threshold;

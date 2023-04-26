@@ -17,6 +17,10 @@ float ArmorDetector::score_of_last=1;
 vector<cv::RotatedRect> ArmorDetector::record_history_arr;
 
 
+
+/**
+ * @brief 获取角度的函数
+*/
 float get_angle(const cv::Point2f &a,const cv::Point2f &b)
 {
     float dx=a.x-b.x;
@@ -25,16 +29,25 @@ float get_angle(const cv::Point2f &a,const cv::Point2f &b)
     return atanf(dy/dx)*180/CV_PI;
 }
 
+/**
+ * @brief 获得距离函数
+*/
 float get_dis ( const cv::Point2f &a,const cv::Point2f &b)
 {
     return sqrtf(pow(a.x-b.x,2)+pow(a.y-b.y,2));
 }
 
+
+
+
+/**
+ * 构造函数，初始化各个参数
+*/
 ArmorDetector::ArmorDetector()://  1
     p_svm(std::make_unique<YSU_SVM>()),
     blue_color_threshold(120),
     red_color_threshold(0),
-    max_g_dConArea(10000),
+    max_g_dConArea(15000),
     min_g_dConArea(200),
     max_angle_abs(20),
     max_center_y(40),
@@ -43,9 +56,14 @@ ArmorDetector::ArmorDetector()://  1
 
 
 
+
+
+
+/**
+ * @brief 初始化函数，对外接口 调用本函数可以初始化装甲板识别功能类的各个参数，在识别之前使用，最新加上了深度学习的初始化函数，本函数可能会花费较多的时间，是正常现象
+*/
 void ArmorDetector::InitArmor()
 {
-    //cout<<"装甲板检测初始化成功！"<<endl;
     cout<<"armor_detector init begin"<<endl;
 
          string file_path="../xml_path/armor_limited.xml";
@@ -87,19 +105,19 @@ void ArmorDetector::InitArmor()
         fr["wu_cha_yun_xu"]>>wu_cha_yun_xu;
         fr.release();
 cout<<"armor_xml loading finished"<<endl;
-
+        // 卡尔曼相关
          for(int i=0;i<8;i++){
              p_kal.emplace_back(std::make_unique<Kalman_t>());
              p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
          }
-
-         p_svm->InitSVM();
+        // // 初始化SVM函数，按道理来说弃用
+        //  p_svm->InitSVM();
 
         record_history_arr.clear();
-#ifndef USE_OLD_DETECTOR
+        // 这个部分可能会消耗比较多的时间, 但是是正常现象
+        // 深度学习加载模型
         this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
         this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
-#endif  // 这个部分可能会消耗比较多的时间, 但是是正常现象
         cout<<"armor_detector init finished"<<endl;
 }
 
@@ -109,186 +127,13 @@ void ArmorDetector::LoadImage(cv::Mat &frame)
     src_image_copy=frame.clone();
 }
 
-void ArmorDetector::PretreatImage(){
-/*
-经过尝试，相机曝光度选择人肉眼勉强可以看清楚数字的状态，使用以下参数进行预处理，可以有效规避误识别。
-    cv::Mat element = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
-    cv::Mat element2 = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(3,3));
-
-    if(ENEMY_COLOR_IS_RED)
-    {//Red
-        cv::Mat thre_whole;
-        cv::Mat diff[3];//分离后的单通道图像,填函数的输出数组或者输出的vector容器
-        cv::split(src_image_,diff); //分离通道 BGR
-        cvtColor(src_image_,thre_whole,CV_BGR2GRAY);
-        threshold(thre_whole,thre_whole,80,255,cv::THRESH_BINARY);
-        addWeighted(diff[2],1,diff[0],-1,0,thre_image_);
-        threshold(thre_image_,thre_image_,100,255,cv::THRESH_BINARY);
-        dilate(thre_image_,thre_image_,element);
-        thre_image_ = thre_whole & thre_image_;
-        dilate(thre_image_,thre_image_,element2);
-    }
-    else
-    {//Blue
-        cv::Mat thre_whole;
-        cv::Mat diff[3];//分离后的单通道图像
-        cv::split(src_image_,diff); //分离通道 BGR
-        cvtColor(src_image_,thre_whole,CV_BGR2GRAY);
-        threshold(thre_whole,thre_whole,170,255,cv::THRESH_BINARY);
-        addWeighted(diff[0],1,diff[2],-0.70,0,thre_image_);
-        cv::threshold(thre_image_,thre_image_,130,255,cv::THRESH_BINARY);
-        dilate(thre_image_,thre_image_,element);
-        thre_image_ = thre_whole & thre_image_;
-        dilate(thre_image_,thre_image_,element2);
-    }
-*/
-    cv::Mat element = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
-    cv::Mat element2 = getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(3,3));
-
-//     cv::waitKey(1);
-}
-
-//筛选灯条
-void ArmorDetector::DetectLightBar(){
-    std::vector<std::vector<cv::Point> > contours;  //轮廓集
-    std::vector<cv::Vec4i> hierarchy;//
-    cv::findContours(thre_image_,contours,hierarchy,cv::RETR_EXTERNAL,cv::CHAIN_APPROX_SIMPLE);
-    if(contours.size()>1)
-    {
-        std::vector <std::vector<cv::Point> >::iterator iter; //轮廓类型迭代器
-        for ( iter = contours.begin(); iter != contours.end() ; iter++ )
-        {
-            double g_dConArea = contourArea(*iter);
-//            putText(src_image_,to_string(g_dConArea),Point2f(10,50),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-      //面积限制
-       if (g_dConArea>contour_area_max || g_dConArea<contour_area_min){continue;}
-
-            cv::RotatedRect rect = cv::minAreaRect(*iter); //用最小矩形包起来每个轮廓便于后续处理
-            float max_radio=cv::max(rect.size.height/rect.size.width,rect.size.width/rect.size.height);
-
-//        putText(src_image_,"area_rotia:"+to_string(g_dConArea/rect.size.area()),Point2f(10,50),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-      //轮廓面积/外接矩形面积，可用于限制ROI区域规则程度，装甲板正对的时候结果约为0.85
-      if((g_dConArea/rect.size.area())<contour_div_rect)continue;
-
-//           putText(src_image_,"max_radio"+to_string(max_radio),Point2f(10,50),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-       //装甲板长宽比限制，下限限制了左右摇头程度，上限限制了俯仰角程度
-       if(max_radio>contour_width_height_ratio_max){continue;}
-       if(max_radio<contour_width_height_ratio_min){continue;}
-
-        //旋转角限制，该值给的低可以筛掉车辆45度方向的虚假“装甲板”，但是也容易导致侧倾装甲板识别不到。
-       if(rect.angle>(-90 + contour_angle_max)&&rect.angle<(0 - contour_angle_max)){continue;}
-
-//            putText(src_image_,"width"+to_string(rect.size.width),Point2f(10,50),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-//            putText(src_image_,"heigh"+to_string(rect.size.height),Point2f(10,100),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-//            putText(src_image_,"angle"+to_string(rect.angle),Point2f(10,150),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,0));
-        //去除横着的灯条（竖着的“装甲板”）
-       if((rect.angle<(-90+contour_angle_max)&&(rect.size.width<rect.size.height))
-         ||((rect.angle>(0-contour_angle_max)&&(rect.size.width>rect.size.height)))){continue;}
-
-
-
-//            Point2f pt[4];
-//            rect.points(pt);
-//            float dx_0to2=fabs(pt[2].x-pt[0].x);
-//            float dy_0to2=fabs(pt[2].y-pt[0].y);
-
-            light_bars_.push_back(rect);
-        }
-    }
-}
-
-//tong guo deng tiao pi pei zhuang jia ban
-void ArmorDetector::DetectArmor(){
-
-    if(light_bars_.size() > 1)
-    {//按照从左到右排序，只检测相邻的灯条
-        sort(light_bars_.begin(),light_bars_.end(),[](const RotatedRect & rect1, const RotatedRect & rect2) { return rect1.center.x < rect2.center.x; });
-        for(size_t i=0;i<light_bars_.size()-1;i++)
-        {
-                //如果这里可以当作可以用的装甲板，那么把两个灯条定义为装甲板然后放进另一个数组里
-                //rotatedRects[i]和rotatedRects[j]
-                //首先通过平行度和center_y进行筛选，找到候选的装甲板
-                //但是一个灯条只能构成一个装甲板，怎么衡量那个装甲板最需要这个灯条，但是如果判断错误了，那么可能会把中间图案的装甲板加进来了。
-                //所以如果有可能的话，暂时先保存着这两个装甲板
-
-                float leftLength = std::max(light_bars_[i].size.width,light_bars_[i].size.height);
-                float rightLength = std::max(light_bars_[i+1].size.width,light_bars_[i+1].size.height);
-//                putText(src_image_,"ratio:"+std::to_string(cv::max(leftLength,rightLength) / cv::min(leftLength,rightLength)),Point2f(10,50),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-            //两灯条长度比例限制，可以筛掉一些不在同一平面的灯条。
-            if((cv::max(leftLength,rightLength) / cv::min(leftLength,rightLength) )> two_light_strips_ratio_min){continue;}
-
-                Point2f lp[4],rp[4];
-                light_bars_[i].points(lp);
-                light_bars_[i+1].points(rp);
-                float leftAngle,rightAngle,angle_sub;
-                if(leftLength==light_bars_[i].size.width){leftAngle=get_angle(lp[0],lp[3]);}
-                else {leftAngle=get_angle(lp[0],lp[1]);}
-                if(rightLength==light_bars_[i+1].size.width){rightAngle=get_angle(rp[0],rp[3]);}
-                else {rightAngle=get_angle(rp[0],rp[1]);}
-                if(leftAngle<(-90+two_light_strips_angle_sub)){leftAngle=fabs(leftAngle);}
-                if(rightAngle<(-90+two_light_strips_angle_sub)){rightAngle=fabs(rightAngle);}
-                angle_sub=fabs(leftAngle-rightAngle);
-//                cout<<"angle_sub"<<angle_sub<<endl;
-           //两灯条角度差值限制，该条件可用于筛掉车辆45度方向的虚假装甲板，建议7~10度
-           if(angle_sub > two_light_strips_angle_sub){continue;}//jiao du cha zhi
-
-
-                RotatedRect obj_rect = boundingRRect(light_bars_[i],light_bars_[i+1]);
-
-//长宽比限制，旋转角度限制
-          if((obj_rect.size.width/obj_rect.size.height)> height_width_ratio_max) {continue;}
-          if((obj_rect.size.width/obj_rect.size.height)<height_width_ratio_min){continue;}
-          if(obj_rect.angle>objRect_angle_max||obj_rect.angle<0-objRect_angle_max){continue;}
-          match_armors_.push_back(obj_rect);
- //putText(src_image_,to_string(obj_rect.size.width/obj_rect.size.height),obj_rect.center,cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,255));
-
-#ifdef DEBUG
-              Point2f p[4];
-              obj_rect.points(p);
-//                cv::putText(src_image_,"left:"+to_string(leftAngle),p[0],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,255));
-//                    putText(src_image_,"right:"+to_string(rightAngle),p[2],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,255));
-//              putText(src_image_,"raito:"+to_string(obj_rect.size.width/obj_rect.size.height),p[0],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//              putText(src_image_,"angle_sub:"+to_string(angle_sub),obj_rect.center,cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(255,255,255));
-//            putText(src_image_,"p0:",p[0],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//            putText(src_image_,"p1:",p[1],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//            putText(src_image_,"p2:",p[2],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//            putText(src_image_,"p3:",p[3],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-
-//            putText(src_image_,"obj_rect.angle"+to_string(obj_rect.angle),p[3],cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//            putText(src_image_,"obj_rect.width"+to_string(obj_rect.size.width),Point2f(10,150),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-//            putText(src_image_,"obj_rect.heigth"+to_string(obj_rect.size.height),Point2f(10,200),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,255,255));
-
-
-
-//            putText(src_image_,"obj.area():"+std::to_string(obj_rect.size.area()),Point2d(10,60),cv::FONT_HERSHEY_SIMPLEX,0.8,cv::Scalar(0,0,255));
-
-//            //debug
-//            obj_rect.points(p);
-//            std::cout << "angle_sub: " << angle_sub << std::endl;
-//            std::cout << "two_light_strips_ratio: " << cv::min(leftLength,rightLength) / cv::max(leftLength,rightLength)<< std::endl;
-//            std::cout << "height_width_ratio: " << dis / averageLength<< std::endl;
-//            line(src_image_, p[0], p[1], cv::Scalar(0, 255,0), 1);
-//            line(src_image_, p[1], p[2], cv::Scalar(0, 255,0), 1);
-//            line(src_image_, p[2], p[3], cv::Scalar(0, 255,0), 1);
-//            line(src_image_, p[3], p[0], cv::Scalar(0, 255,0), 1);
-
-            //putText(src_image_,"angle_sub:"+std::to_string(angle_sub),Point2d(10,10),cv::FONT_HERSHEY_SIMPLEX,0.45,cv::Scalar(0,0,255));
-
-//            //line(src_image_, leftCenter, rightCenter, cv::Scalar(0, 255, 100), 2);
-#endif
-        }
-    }
-//     putText(src_image_,"record_max_angle:"+std::to_string(record_max_angle),Point2d(10,40),cv::FONT_HERSHEY_SIMPLEX,0.45,cv::Scalar(0,0,255));
-}
-
 /**
  * @brief 原代码取最左边的矩形，改进代码是取面积最大的+预测
  *
- * @attention [调用函数需要注意的地方]
+ * @attention 在调用识别函数之后使用，默认是筛选最大的装甲板，也可以优先历史帧
  *
- * @param [参数1] [参数说明]
- * @param [参数2] [参数说明]
- * @return [返回值] [返回值说明]
+ * @param void
+ * @return void
  */
 void ArmorDetector::ScreenArmor(){
 #ifdef DEBUG
@@ -424,11 +269,17 @@ void ArmorDetector::ScreenArmor(){
         target_armor_point_set.push_back(Point2d(0,0));
     }
 }
+
+/**
+ * @brief 清空历史工作
+*/
 void ArmorDetector::ClearAll(){
-    light_bars_.clear();
     match_armors_.clear();
 }
 
+/**
+ * @brief 展示结果
+*/
 void ArmorDetector::Show(){
 #ifdef DEBUG
   // imshow("dst",thre_image_);
@@ -444,6 +295,7 @@ void ArmorDetector::Show(){
 }
 
 /**
+ * @author 可莉不知道哦
  * @brief ArmorDetector::Yolov2Res
  * @details yolov5识别器，处理完成之后的结果将存到match_armors_的vector中
  */
@@ -456,23 +308,24 @@ void ArmorDetector::Yolov2Res(){
 }
 
 
-
+/**
+ * @author 可莉不知道哦
+ * @return vector<Point2d>& 
+ * @param void
+ * @brief 在初始化之后，每一次加载图片之后就执行一次识别过程，返回最终中心点坐标
+*/
 vector<Point2d>& ArmorDetector::DetectObjectArmor(){
-    // old detector
-#ifdef USE_OLD_DETECTOR
-    PretreatImage();
-    DetectLightBar();
-    DetectArmor();
-    // new detector  ==> yolov5 deeplearning
-#else
-    Yolov2Res();
-#endif
-    ScreenArmor();
-    ClearAll();
+    // old detector 老视觉识别已经弃用，现在用的深度学习识别
+    Yolov2Res();                   // 调用yolo模型
+    ScreenArmor();                 // 使用原来的装甲板筛选代码
+    ClearAll();                    // 清除历史工作数据
 
-    return target_armor_point_set;
+    return target_armor_point_set; // 返回中心点的信息
 }
 
+/**
+ * @brief 保存图片
+*/
 void ArmorDetector::baocun()
 {
         imgname = "./debug_shortcut/"+to_string(f++) + ".jpg"; //输出文件名为 f.jpg, 保留在工程文件夹中
