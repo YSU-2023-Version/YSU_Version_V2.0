@@ -153,21 +153,21 @@ void ArmorDetector::ScreenArmor(){
     {
         if(match_armors_.size()!=1)//如果当前帧检测到目标不唯一，则根据多目标优先算法进行排序。
         {
-           if(hero_priority==0){//多因素混合打分
+            if(hero_priority==0){//多因素混合打分
                 sort(match_armors_.begin(),match_armors_.end(),[](const Rect_VectorPoint & rect1, const Rect_VectorPoint & rect2) {
-                  float score1=1,score2=1;
-                  //da zjb::score+=
-                  float ratio1=(rect1.rect.size.width/rect1.rect.size.height);
-                  float ratio2=(rect2.rect.size.width/rect2.rect.size.height);
-                  if(ratio1<hero_zjb_ratio_max&&ratio1>hero_zjb_ratio_min)score1+=score_of_hero;
-                  if(ratio2<hero_zjb_ratio_max&&ratio2>hero_zjb_ratio_min)score2+=score_of_hero;
+                    float score1=1,score2=1;
+                    //da zjb::score+=
+                    float ratio1=(rect1.rect.size.width/rect1.rect.size.height);
+                    float ratio2=(rect2.rect.size.width/rect2.rect.size.height);
+                    if(ratio1<hero_zjb_ratio_max&&ratio1>hero_zjb_ratio_min)score1+=score_of_hero;
+                    if(ratio2<hero_zjb_ratio_max&&ratio2>hero_zjb_ratio_min)score2+=score_of_hero;
 
-                  rect1.rect.size.area()>rect2.rect.size.area()?score1+=score_of_area:score2+score_of_area;
-                  (get_dis((record_history_arr.end()-1)->center,rect1.rect.center)<get_dis((record_history_arr.end()-1)->center,rect2.rect.center))?score1+=score_of_last:score2+=score_of_last;
+                    rect1.rect.size.area()>rect2.rect.size.area()?score1+=score_of_area:score2+score_of_area;
+                    (get_dis((record_history_arr.end()-1)->center,rect1.rect.center)<get_dis((record_history_arr.end()-1)->center,rect2.rect.center))?score1+=score_of_last:score2+=score_of_last;
 
-                  return score1>score2;
+                    return score1>score2;
                 });
-           }else if(hero_priority==1){//优先历史帧
+            }else if(hero_priority==1){//优先历史帧
                 sort(match_armors_.begin(),match_armors_.end(),[](const Rect_VectorPoint & rect1, const Rect_VectorPoint & rect2)
                 {
                     int score1=0,score2=0;
