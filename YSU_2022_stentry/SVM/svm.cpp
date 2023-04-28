@@ -39,7 +39,15 @@ float YSU_SVM::getNum(cv::Mat& original)
 {
      PretreatImage(original);
      resize(original,copy_resize,cv::Size(64,64),0,0,cv::INTER_LINEAR);
+<<<<<<< HEAD
      convertTo3Channels(copy_resize);
+=======
+
+     string a= "/home/zjw/image/1/"+to_string(i/5)+".jpg";
+     cv::imwrite(a,copy_resize);
+     i++;
+     //convertTo3Channels(copy_resize);
+>>>>>>> origin/master
 
      descriptors.clear();
      hog=cv::HOGDescriptor(cv::Size(64,64),cv::Size(16,16),cv::Size(8,8),cv::Size(8,8),9);

@@ -8,7 +8,7 @@
 打符的话可根据结果理想程度选用sin函数或指数函数
 */
 
-#define DEBUG
+// #define DEBUG
 #include "Main/headfiles.h"
 #include "Forecast/forecast.h"
 #include "Timer/Timer.h"
@@ -100,6 +100,7 @@ bool rect_line_intersection(const vector<Point2d> & line, const vector<Point2d>&
 
 Forecast::Forecast()
 {};
+<<<<<<< HEAD
 //cv::KalmanFilter KF(stateNum, measureNum, 0) ;
 Kalman kalman_p;
 Kalman kalman_v;
@@ -108,6 +109,15 @@ void Forecast::Init()
     kalman_p.Kalman_init();
     kalman_v.Kalman_init();
 //    Kalman_init(&KF);
+=======
+
+  //Cv_Kalman_t kalman_p;
+  //Cv_Kalman_t kalman_v;
+
+void Forecast::Init()
+{
+
+>>>>>>> origin/master
 
     cout<<"forecast init begin"<<endl;
     string file_path="../xml_path/forecast.xml";
@@ -175,8 +185,12 @@ void Forecast::Init()
 }
 
 
+<<<<<<< HEAD
  vector<Point2d>& Forecast::
  forcast(vector<Point2d> &original,double time)
+=======
+ vector<Point2d>& Forecast::forcast(vector<Point2d> &original,double time)
+>>>>>>> origin/master
  {
 #ifdef DEBUG
     show=Mat(1024,1080,CV_8UC3,Scalar(0,0,0));//观测结果，预测结果可视化
@@ -197,6 +211,7 @@ void Forecast::Init()
          }
 
      }
+<<<<<<< HEAD
      //4.11更改，设置时间最大值
       int time_temp=time;
       time_temp=time_temp%max_time;
@@ -204,6 +219,9 @@ void Forecast::Init()
       time=time_temp;
 
       //***
+=======
+
+>>>>>>> origin/master
       now=chuo(original,time);//
       original_vec_length=sqrt(pow(now.rect[0].x-now.center.x,2)+pow(now.rect[0].y-now.center.y,2));
       for(int i=0;i<4;i++)//记录四个顶点相对于中心点的方向向量。
@@ -221,14 +239,19 @@ void Forecast::Init()
           while(record_history.size()>record_history_size){record_history.erase(record_history.begin());}
       }
 
+<<<<<<< HEAD
 
 
       cout<<"                          record_history "<<record_history.size()<<endl;
       if(record_history.size()>=3)//记录数量达到观测需要再进行预测
+=======
+      if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
+>>>>>>> origin/master
       {
         result.clear();
 
         //预测Api，仅针对中心点进行预测。
+<<<<<<< HEAD
         //get_forecast();
 
         Point2d speed={0,0};
@@ -272,6 +295,12 @@ void Forecast::Init()
             result_center=Point(record_history[record_history.size()-1].center.x,record_history[record_history.size()-1].center.y);
             result_center=kalman_p.Kalman_filter(result_center+speed*pre_time);
 
+=======
+        get_forecast();
+
+
+
+>>>>>>> origin/master
         //对输出结果进行卡尔曼滤波视调参情况决定是否使用。
 //        result_center.x=p_kal[0]->KalmanFilter(result_center.x);
 //        result_center.y=p_kal[1]->KalmanFilter(result_center.y);
@@ -365,6 +394,7 @@ void Forecast::Init()
     //生成预测时间，此步应尽可能靠近计算时间，以减少不必要的误差
     double  aim_time;
      getSystime(aim_time);
+<<<<<<< HEAD
      //4.11更改，设置时间最大值
     int temp_time=aim_time;
     temp_time=temp_time%max_time;
@@ -373,6 +403,9 @@ void Forecast::Init()
      //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
      aim_time+=pre_time;
 
+=======
+     aim_time+=pre_time;
+>>>>>>> origin/master
      result_center=Point2d(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));
 }
 
