@@ -14,7 +14,7 @@ float ArmorDetector::score_of_hero=1;
 float ArmorDetector::score_of_area=1;
 float ArmorDetector::score_of_last=1;
 
-vector<cv::RotatedRect> ArmorDetector::record_history_arr;
+vector<Rect_VectorPoint> ArmorDetector::record_history_arr;
 
 
 
@@ -107,8 +107,8 @@ void ArmorDetector::InitArmor()
 cout<<"armor_xml loading finished"<<endl;
         // 卡尔曼相关
          for(int i=0;i<8;i++){
-             p_kal.emplace_back(std::make_unique<Kalman_t>());
-             p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
+             p_kal.emplace_back(std::make_unique<Kalman>());
+             p_kal[i]->Kalman_init(Kalman_Q,Kalman_R);
          }
         // // 初始化SVM函数，按道理来说弃用
         //  p_svm->InitSVM();
@@ -163,7 +163,7 @@ void ArmorDetector::ScreenArmor(){
                     if(ratio2<hero_zjb_ratio_max&&ratio2>hero_zjb_ratio_min)score2+=score_of_hero;
 
                     rect1.rect.size.area()>rect2.rect.size.area()?score1+=score_of_area:score2+score_of_area;
-                    (get_dis((record_history_arr.end()-1)->center,rect1.rect.center)<get_dis((record_history_arr.end()-1)->center,rect2.rect.center))?score1+=score_of_last:score2+=score_of_last;
+                    (get_dis((record_history_arr.end()-1)->rect.center,rect1.rect.center)<get_dis((record_history_arr.end()-1)->rect.center,rect2.rect.center))?score1+=score_of_last:score2+=score_of_last;
 
                     return score1>score2;
                 });
@@ -172,7 +172,7 @@ void ArmorDetector::ScreenArmor(){
                 {
                     int score1=0,score2=0;
                     for(int tmp=record_history_arr.size();tmp>0;tmp--)
-                    {(get_dis(record_history_arr[tmp-1].center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].center,rect2.rect.center))?score1++:score2++;}
+                    {(get_dis(record_history_arr[tmp-1].rect.center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].rect.center,rect2.rect.center))?score1++:score2++;}
                     return score1>score2;
                 });
            }else if(hero_priority==2){//第一优先大装甲板，再二优先历史帧 
@@ -187,7 +187,7 @@ void ArmorDetector::ScreenArmor(){
 
                   int score1=0,score2=0;
                   for(int tmp=record_history_arr.size();tmp>0;tmp--)
-                  {(get_dis(record_history_arr[tmp-1].center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].center,rect2.rect.center))?score1++:score2++;}
+                  {(get_dis(record_history_arr[tmp-1].rect.center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].rect.center,rect2.rect.center))?score1++:score2++;}
                   return score1>score2;
                });
            }else{//优先最大面积
@@ -198,7 +198,9 @@ void ArmorDetector::ScreenArmor(){
         }
        
         int id=0;// 获取到最好的那个
-        Point2f vertices[4] = match_armors_[id].points;
+        Point2f vertices[4];
+
+        for(int i = 0;i < 4;i++) vertices[i] = match_armors_[id].points[i];
 
         while(1){
             sort(vertices, vertices + 4, [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
@@ -236,7 +238,7 @@ void ArmorDetector::ScreenArmor(){
           if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1)
             {//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
                 if((1+id)>=match_armors_.size())break;
-                else match_armors_[++id].points(vertices);
+                else match_armors_[++id].rect.points(vertices);
             }else
             {
                 break;
@@ -301,10 +303,10 @@ void ArmorDetector::Show(){
 void ArmorDetector::Yolov2Res(){
     this->detect_res_armor_ = this->yolov5_detector_->detect_yolov5(src_image_copy); // 模型推理到结果
     for(auto item : this->detect_res_armor_){ // 遍历识别到的结果
-        Rect_VectorPoint temp rect_points_;
-        rect_points_.points = item.points;
-        rect_points_.rect = cv::minAreaRect(item.points);
-        this->match_armors_.push_back(rect_points_); // 将rect转换成RotatedRect
+        Rect_VectorPoint temp_rect_points_;
+        temp_rect_points_.points = item.points;
+        temp_rect_points_.rect = cv::minAreaRect(item.points);
+        this->match_armors_.push_back(temp_rect_points_); // 将rect转换成RotatedRect
     }
 }
 

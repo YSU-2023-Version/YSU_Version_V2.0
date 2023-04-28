@@ -11,7 +11,7 @@
 */
 struct Rect_VectorPoint {
     /* data */
-    std::vector<cv::Point2d> points;
+    std::vector<cv::Point2f> points;
     cv::RotatedRect rect;
 };
 
@@ -93,15 +93,16 @@ private:
 
     static int record_history_num;
     float wu_cha_yun_xu;
-    static vector<cv::RotatedRect> record_history_arr;
+    static vector<Rect_VectorPoint> record_history_arr;
     vector<int> record_history_arr_num;
 
     float Kalman_Q,Kalman_R;
-    vector<unique_ptr<Kalman_t>> p_kal;
+    vector<unique_ptr<Kalman>> p_kal;
 
     unique_ptr<YSU_SVM> p_svm;
     cv::Mat src_image_copy; //????????????????
     cv::Mat matsvm;
+    cv::Mat warpPerspective_mat=cv::Mat::zeros(3,3,CV_32FC1);//??????
 
 
 };

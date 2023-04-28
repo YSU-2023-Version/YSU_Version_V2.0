@@ -32,15 +32,10 @@ void AngleSolver::InitAngle()
        rVec = cv::Mat::zeros(3,1,CV_64FC1);
        tVec = cv::Mat::zeros(3,1,CV_64FC1);
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
 {
     if(!(object_armor_points_[0]==Point2d(0,0)&&object_armor_points_[1]==Point2d(0,0)&&object_armor_points_[2]==Point2d(0,0)&&object_armor_points_[3]==Point2d(0,0)))
     {
-<<<<<<< HEAD
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
     _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
     _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
@@ -59,35 +54,12 @@ double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
         p_y_err[0] = 0;
         p_y_err[1] = 0;
     }
-=======
-
-        waitKey(1);
-    cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
-    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+x_center_move;
-    _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+y_center_move;
-
-    cout<<"_                        \nxErr:"<<_xErr<<endl;
-    cout<<"_                        \nyErr:"<<_yErr<<endl;
-    gravity_comp();
->>>>>>> origin/master
     double x_pos=tVec.at<double>(0,0);
     double y_pos=tVec.at<double>(1,0);
     double z_pos=tVec.at<double>(2,0);
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
-<<<<<<< HEAD
     cout<<"distance= "<<distance_3d<<endl;
     shoot=1;
-=======
-    shoot=1;
-    if(distance_3d>7000)
-    {
-        shoot=0;
-     cout<<"                   \n\n\n  1111111111111114514"<<endl;
-    }
-
-    cout<<"distance= "<<distance_3d<<endl;
-
->>>>>>> origin/master
     }
     else
     {
@@ -95,16 +67,6 @@ double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
         p_y_err[1] = 0;//top_min=-19
         shoot=0;
     }
-<<<<<<< HEAD
-
-=======
-    if(p_y_err[1]>5)
-    {
-        cout<<"         \n\n\n\n\n\n\n\n\n";
-
-    }
-    cout<<"     `           yaw:"<<p_y_err[1];
->>>>>>> origin/master
     return p_y_err;
 }
 int AngleSolver::shoot_get()
