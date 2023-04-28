@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--2022ysu-eagle 目标装甲板检测参数调整-->
+<opencv_storage>
+<contour_area_min>25</contour_area_min><!-- 灯条的最小允许面积， 限制装甲板到摄像头的最远距离,8m=20,6m=30,4m=80,3m=140 ,建议值20~40  -->
+<contour_area_max>5000</contour_area_max><!-- 灯条的最大允许面积，限制了装甲板到摄像头的最近距离, 40cm=5000,65cm=2200,80cm=1500,100cm=1000,shaobing建议值1000～1500 -->
+
+<contour_width_height_ratio_max>30</contour_width_height_ratio_max><!-- 灯条矩形的长宽比最大值，限制了装甲板允许左右摇头程度，建议值12~20, -->
+<contour_width_height_ratio_min>3</contour_width_height_ratio_min><!-- 灯条矩阵的长宽比最小值，限制了装甲板允许的俯仰点头程度，建议值3.0~4.5 -->
+
+<contour_angle_max>30</contour_angle_max><!-- 灯条的许用旋转角度，建议值0~30 -->
+<contour_div_rect>0.6</contour_div_rect><!-- 发光轮廓面积与外接矩形面积比值下限，约束发光区域形状规则程度 ,装甲板正对镜头该值约为0.9，该值会影响俯仰范围。推荐值0.6~0.8  -->
+
+
+
+<hero_priority>1</hero_priority><!--自瞄逻辑标志 为0：多因素打分。1：强跟踪 2：第一优先大装甲板，再二优先历史帧 ，其他：面积决定 -->
+<hero_zjb_ratio_min>3.9</hero_zjb_ratio_min>
+<hero_zjb_ratio_max>4.1</hero_zjb_ratio_max><!-- 英雄装甲板长宽比:4.0.turn left&right  or shake up&down will change the ratio out of the scale  -->
+<score_of_hero>1.2</score_of_hero>
+<score_of_area>1.0</score_of_area>
+<score_of_last>1.2</score_of_last><!--zhui zong de fen -->
+
+<record_history_num>5</record_history_num><!-- 记录历史上的帧ji lu li shi shang de zhen-->
+<wu_cha_yun_xu>0.7</wu_cha_yun_xu><!--yong yu zhen jian xin xi bi jiao shi chao guo li shi shang de wu_cha_yun_xu*record_history_num ge shu-->
+
+
+<two_light_strips_angle_sub>8</two_light_strips_angle_sub><!--the angle of two light bars sub，20- -->
+<two_light_strips_ratio_min>1.5</two_light_strips_ratio_min><!-- the value will limited the arr shake left and right,when zhe light bars just can't be seen,the value is 1.4,recommend 1.3~1.5-->
+
+<objRect_angle_max>45</objRect_angle_max><!--装甲板许用旋转角度，建议略大于灯条许用角度 -->
+<height_width_ratio_max>5</height_width_ratio_max><!-- the value will limited the arr look up and down,recommend 4~5-->
+<height_width_ratio_min> 2</height_width_ratio_min><!-- the value will limited the arr shake left and right,recommend 1.5~2 -->
+<Kalman_Q>10</Kalman_Q>
+<Kalman_R>1</Kalman_R>
+
+</opencv_storage>

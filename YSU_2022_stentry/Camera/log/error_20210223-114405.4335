@@ -1,0 +1,4 @@
+Log file created at: 2021/02/23 11:44:05
+Running on machine: mazixi-Legion-Y7000-2019-PG0
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E0223 11:44:05.313695  4335 MVCAMAPI.cpp:342] CameraInit Failed, err:-18,Version:2.1.0.20,FriendlyName:MV-SUA133GC#0,SN:049032410170
