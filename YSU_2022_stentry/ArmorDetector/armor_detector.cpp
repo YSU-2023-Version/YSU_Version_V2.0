@@ -1,79 +1,78 @@
-#include "Main/headfiles.h"
-#include "ArmorDetector/armor_detector.h"
-#include "Pose/angle_solver.h"
-#include  <time.h>
-//  #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
 
- //#define DEBUG 1
 
-//由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
-float ArmorDetector:: hero_zjb_ratio_min=3.9;
-float ArmorDetector::hero_zjb_ratio_max=4.1;
-int  ArmorDetector:: record_history_num=5;
-float ArmorDetector::score_of_hero=1;
-float ArmorDetector::score_of_area=1;
-float ArmorDetector::score_of_last=1;
+#include "kalman.h"
 
-vector<cv::RotatedRect> ArmorDetector::record_history_arr;
+Cv_Kalman_t::Cv_Kalman_t():
+    KF(std::make_unique<cv::KalmanFilter>(Q,R))
+{
+    //KF->transitionMatrix = *(Mat_<float>(2, 2) << 1, 1, 0, 1);  //杞Щ鐭╅樀A[1,1;0,1]
+
+
+    //灏嗕笅闈㈠嚑涓煩闃佃缃负瀵硅闃�
+    setIdentity(KF->measurementMatrix);                             //娴嬮噺鐭╅樀H
+    setIdentity(KF->processNoiseCov, Scalar::all(1e-5));            //绯荤粺鍣０鏂瑰樊鐭╅樀Q
+    setIdentity(KF->measurementNoiseCov, Scalar::all(1e-1));        //娴嬮噺鍣０鏂瑰樊鐭╅樀R
+    setIdentity(KF->errorCovPost, Scalar::all(1));                  //鍚庨獙閿欒浼拌鍗忔柟宸煩闃礟
+
+    randn(KF->statePost, Scalar::all(0), Scalar::all(0.1));          //x(0)鍒濆鍖�
+};
 
 
 
 /**
- * @brief 获取角度的函数
-*/
-float get_angle(const cv::Point2f &a,const cv::Point2f &b)
+  * @name   kalmanCreate
+  * @brief  锟斤拷锟斤拷一锟斤拷锟斤拷锟斤拷锟斤拷锟剿诧拷锟斤拷
+  * @param  p:  锟剿诧拷锟斤拷
+  *         T_Q:系统锟斤拷锟斤拷协锟斤拷锟斤拷
+  *         T_R:锟斤拷锟斤拷锟斤拷锟斤拷协锟斤拷锟斤拷
+  *
+  * @retval none
+  * @attention 	R锟教讹拷锟斤拷Q越锟襟，达拷锟斤拷越锟斤拷锟轿诧拷锟斤拷值锟斤拷Q锟斤拷锟斤拷锟斤拷锟街伙拷貌锟斤拷锟街�
+  *		       		锟斤拷之锟斤拷Q越小锟斤拷锟斤拷越锟斤拷锟斤拷模锟斤拷预锟斤拷值锟斤拷Q为锟斤拷锟斤拷锟斤拷只锟斤拷模锟斤拷预锟斤拷
+  */
+void Kalman_t::KalmanInit(double T_Q,double T_R)
 {
-    float dx=a.x-b.x;
-    if(fabs(dx)<0.1) return -90;
-    float dy=a.y-b.y;
-    return atanf(dy/dx)*180/CV_PI;
+    X_last = (double)0;
+    P_last = 0;
+    Q = T_Q;
+    R = T_R;
+    A = 1;
+    B = 0;
+    H = 1;
+    X_mid = X_last;
 }
 
 /**
- * @brief 获得距离函数
-*/
-float get_dis ( const cv::Point2f &a,const cv::Point2f &b)
+  * @name   KalmanFilter
+  * @brief  锟斤拷锟斤拷锟斤拷锟剿诧拷锟斤拷
+  * @param  p:  锟剿诧拷锟斤拷
+  *         dat:锟斤拷锟剿诧拷锟斤拷锟斤拷
+  * @retval 锟剿诧拷锟斤拷锟斤拷锟斤拷锟�
+  * @attention Z(k)锟斤拷系统锟斤拷锟斤拷,锟斤拷锟斤拷锟斤拷值   X(k|k)锟角匡拷锟斤拷锟斤拷锟剿诧拷锟斤拷锟街�,锟斤拷锟斤拷锟斤拷锟斤拷锟�
+  *            A=1
+		B=0 H=1 I=1  W(K)  V(k)锟角革拷斯锟斤拷锟斤拷锟斤拷,锟斤拷锟斤拷锟节诧拷锟斤拷值锟斤拷锟斤拷,锟斤拷锟皆诧拷锟矫癸拷
+  *            锟斤拷锟斤拷锟角匡拷锟斤拷锟斤拷锟斤拷5锟斤拷锟斤拷锟侥癸拷式
+  *            一锟斤拷H'锟斤拷为锟斤拷锟斤拷锟斤拷,锟斤拷锟斤拷为转锟矫撅拷锟斤拷
+  */
+
+double Kalman_t::KalmanFilter(double dat)
 {
-    return sqrtf(pow(a.x-b.x,2)+pow(a.y-b.y,2));
+    X_mid =A*X_last;                     //锟劫度讹拷应锟斤拷式(1)    x(k|k-1) = A*X(k-1|k-1)+B*U(k)+W(K)
+    P_mid = A*P_last+Q;               //锟劫度讹拷应锟斤拷式(2)    p(k|k-1) = A*p(k-1|k-1)*A'+Q
+    kg = P_mid/(P_mid+R);             //锟劫度讹拷应锟斤拷式(4)    kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
+    X_now = X_mid+kg*(dat-X_mid);     //锟劫度讹拷应锟斤拷式(3)    x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
+    P_now = (1-kg)*P_mid;                //锟劫度讹拷应锟斤拷式(5)    p(k|k) = (I-kg(k)*H)*P(k|k-1)
+    P_last = P_now;                         //状态锟斤拷锟斤拷
+    X_last = X_now;
+    return X_now;							  //锟斤拷锟皆わ拷锟斤拷锟絰(k|k)
 }
-
-
-
-
-/**
- * 构造函数，初始化各个参数
-*/
-ArmorDetector::ArmorDetector()://  1
-    p_svm(std::make_unique<YSU_SVM>()),
-    blue_color_threshold(120),
-    red_color_threshold(0),
-    max_g_dConArea(15000),
-    min_g_dConArea(200),
-    max_angle_abs(20),
-    max_center_y(40),
-    get_data_fps(50)
-{}
-
-
-
-
-
-
-/**
- * @brief 初始化函数，对外接口 调用本函数可以初始化装甲板识别功能类的各个参数，在识别之前使用，最新加上了深度学习的初始化函数，本函数可能会花费较多的时间，是正常现象
-*/
-void ArmorDetector::InitArmor()
-{
-    cout<<"armor_detector init begin"<<endl;
-
-         string file_path="../xml_path/armor_limited.xml";
-         cv::FileStorage fr;
-         fr.open(file_path,cv::FileStorage::READ);
-         while(!fr.isOpened()){
-               cout<<"armor_xml floading failed..."<<endl;
-              fr=cv::FileStorage(file_path,cv::FileStorage::READ);
-              fr.open(file_path,cv::FileStorage::READ);
-         }
+    cv::FileStorage fr;
+    fr.open(file_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        cout<<"armor_xml floading failed..."<<endl;
+        fr=cv::FileStorage(file_path,cv::FileStorage::READ);
+        fr.open(file_path,cv::FileStorage::READ);
+    }
 
         fr["contour_area_min"]>>contour_area_min;
         fr["contour_area_max"]>>contour_area_max;
@@ -106,10 +105,10 @@ void ArmorDetector::InitArmor()
         fr.release();
 cout<<"armor_xml loading finished"<<endl;
         // 卡尔曼相关
-         for(int i=0;i<8;i++){
-             p_kal.emplace_back(std::make_unique<Kalman_t>());
-             p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
-         }
+        for(int i=0;i<8;i++){
+            p_kal.emplace_back(std::make_unique<Kalman_t>());
+            p_kal[i]->KalmanInit(Kalman_Q,Kalman_R);
+        }
         // // 初始化SVM函数，按道理来说弃用
         //  p_svm->InitSVM();
 
@@ -139,7 +138,7 @@ void ArmorDetector::ScreenArmor(){
 #ifdef DEBUG
     cout<<"match_armors_.size():"<<match_armors_.size()<<endl;
 #endif
- 
+
     record_history_arr_num.emplace_back(match_armors_.size());//tuxiangzhong zhenshi jiance daode zhuangjiaban shuliang
     while(record_history_arr_num.size()>record_history_num)record_history_arr_num.erase(record_history_arr_num.begin());
 
@@ -175,28 +174,28 @@ void ArmorDetector::ScreenArmor(){
                     {(get_dis(record_history_arr[tmp-1].center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].center,rect2.rect.center))?score1++:score2++;}
                     return score1>score2;
                 });
-           }else if(hero_priority==2){//第一优先大装甲板，再二优先历史帧 
+            }else if(hero_priority==2){//第一优先大装甲板，再二优先历史帧 
                 sort(match_armors_.begin(),match_armors_.end(),[](const Rect_VectorPoint & rect1, const Rect_VectorPoint & rect2)
-               {
-                  float ratio1=rect1.rect.size.width/rect1.rect.size.height;
-                  float ratio2=rect2.rect.size.width/rect2.rect.size.height;
-                  if(ratio1>4.2)return false;
-                  if(ratio2>4.2)return true;
-                  if(ratio1>3.0&&ratio2<3.0)return true;
-                  if(ratio2>3.0&&ratio1<3.0)return false;
+                {
+                    float ratio1=rect1.rect.size.width/rect1.rect.size.height;
+                    float ratio2=rect2.rect.size.width/rect2.rect.size.height;
+                    if(ratio1>4.2)return false;
+                    if(ratio2>4.2)return true;
+                    if(ratio1>3.0&&ratio2<3.0)return true;
+                    if(ratio2>3.0&&ratio1<3.0)return false;
 
-                  int score1=0,score2=0;
-                  for(int tmp=record_history_arr.size();tmp>0;tmp--)
-                  {(get_dis(record_history_arr[tmp-1].center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].center,rect2.rect.center))?score1++:score2++;}
-                  return score1>score2;
-               });
-           }else{//优先最大面积
+                    int score1=0,score2=0;
+                    for(int tmp=record_history_arr.size();tmp>0;tmp--)
+                    {(get_dis(record_history_arr[tmp-1].center,rect1.rect.center))<(get_dis(record_history_arr[tmp-1].center,rect2.rect.center))?score1++:score2++;}
+                    return score1>score2;
+                });
+            }else{//优先最大面积
                 sort(match_armors_.begin(),match_armors_.end(),[](const Rect_VectorPoint & rect1, const Rect_VectorPoint & rect2) {
-                   return rect1.rect.size.area() > rect2.rect.size.area();
-               });
-           }
+                    return rect1.rect.size.area() > rect2.rect.size.area();
+                });
+            }
         }
-       
+
         int id=0;// 获取到最好的那个
         Point2f vertices[4] = match_armors_[id].points;
 
@@ -230,19 +229,17 @@ void ArmorDetector::ScreenArmor(){
         imshow("src",src_image_);
         waitKey(1);
 #endif
-          //float temp=p_svm->getNum(warpPerspective_dst)-2;
-          //短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
-       // 空，但是没找到解决方案。
-          if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1)
-            {//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
-                if((1+id)>=match_armors_.size())break;
-                else match_armors_[++id].points(vertices);
-            }else
-            {
-                break;
-            }
+        // float temp=p_svm->getNum(warpPerspective_dst)-2;
+        // 短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
+        // 空，但是没找到解决方案。
+        if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1){//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
+            if((1+id)>=match_armors_.size())break;
+            else match_armors_[++id].points(vertices);
+        }else{
+            break;
         }
-   
+        }
+
 
 //        for(int i=0;i<4;i++)
 //       {
