@@ -26,39 +26,69 @@ RuneDetector::RuneDetector()
      buff_mode = WAIT_TO_CHECK;
 }
 
-void RuneDetector::getShootAim(const Mat &src,double time,std::promise<Point2f> &shoot)
+void RuneDetector::getShootAim(const Mat & src,double time,std::promise<Point2f> & shoot)
 {
 
+        //imwrite("/home/robomaster/qtcreator_workspace/114514/"+to_string(time)+".jpg",src);
+    //cout<<"                             1111"<<DELAY_TIME<<endl;
     if (src.empty()) {
        shoot.set_value(Point2f(320,240));
+
        return;//没图，给电控传0，底盘放松。
     }
     src.copyTo(src_);
     preDelBuff();//图像预处理
+#ifdef DEBUG
+    cout<<"\npreDelBuff complete\n";
+#endif
     if (!searchOfAim()){//查找目标Aim和R
         shoot.set_value(Point2f(320,240));
-        cout << "warning:find Aim failed" << endl;
+#ifdef DEBUG
+        cout << "\n warning:find Aim failed" << endl;
+#endif
+
+
         return;//图像中没有目标点，给电控传0，底盘放松。
     }
+
+
 
     //添加卡尔曼滤波
 
     history[++i % 30] = record(aim, r, time);
     checkBuffMode();  //如果电控给了大符模式标志位，就把这句注释掉。
+
     getforecastAim(); //告诉操作手，前几帧没法预测，让稍微等几秒钟。
+
 #ifdef DEBUG
-circle(src_,out,5,Scalar(255,255,255),3);
+circle(src_,Point(out.x,out.y),5,Scalar(0,255,0),3);
 imshow("src",src_);
-waitKey(1);
+imwrite("/home/robomaster/qtcreator_workspace/114514/"+to_string(time)+".jpg",src_);
+cout<<"\n\n\n\n"<<"114514"<<"\n\n\n\n\n";
+//waitKey(1);
 #endif
     shoot.set_value(out);
+
     return ;
 
 }
 
 void RuneDetector::preDelBuff() {
-    if (pretreatMode == PRETREAT_HSV) {
-        cvtColor(src_, dst, CV_RGB2GRAY);
+    if (pretreatMode == PRETREAT_HSV) {//pretreatMode == PRETREAT_HSV
+        if(src_.type()==CV_8UC3)
+            cvtColor(src_, dst, CV_BGR2GRAY);
+        else
+        {
+            src_.copyTo(dst);
+#ifdef DEBUG
+            imwrite("/home/robomaster/qtcreator_workspace/114514/error/0.jpg",src_);
+            cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n dst is not CV_8UC3\n\n";
+
+#endif
+        }
+        //cvtColor(src_, dst, CV_RGB2GRAY);为什么要写RGB？？？
+
+
         threshold(dst, dst, 70, 255, CV_THRESH_BINARY);
         Mat hsv, mask;
         cvtColor(src_, hsv, CV_RGB2HSV);
@@ -70,12 +100,25 @@ void RuneDetector::preDelBuff() {
         dilate(dst, dst, gray_element);
         Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
         erode(dst, dst, element);
+        imshow("dst1", dst);
+
         return;
     }
     else{
-        //灰度阈值二值
+        //通道相减，灰度阈值二值
         Mat gray;
-        cvtColor(src_, gray, COLOR_BGR2GRAY);
+        if(src_.type()==CV_8UC3)
+            cvtColor(src_, gray, COLOR_BGR2GRAY);
+        else
+        {
+#ifdef DEBUG
+            src_.copyTo(gray);
+            imwrite("/home/robomaster/qtcreator_workspace/114514/error/1.jpg",src_);
+#endif
+
+            cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n gray is not CV_8UC3\n\n";
+        }
+
         threshold(gray, gray, 50, 255, THRESH_BINARY);
         cv::Mat core = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
         dilate(gray, gray, core);
@@ -99,6 +142,19 @@ void RuneDetector::preDelBuff() {
 
         dst = temp_binary & gray;
         dilate(dst, dst, core_,Point(-1,-1),2);
+        //3.24外加
+        //闭运算
+        Mat procImg;
+        int structElementSize = 3;
+        Mat element = getStructuringElement(MORPH_RECT,Size(2 * structElementSize + 1,2 * structElementSize + 1),Point(structElementSize,structElementSize));
+        morphologyEx(dst,procImg,MORPH_CLOSE,element);
+
+
+#ifdef DEBUG
+        imshow("procImg", procImg);
+#endif
+
+        //imshow("dst",dst);
         return;
     }
 }
@@ -113,6 +169,11 @@ bool RuneDetector::searchOfAim()
     vector<RotatedRect> R_, Aim_;
     findContours(dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE);
 
+
+#ifdef DEBUG
+    cout<<"\nfindcontourse complete\n";
+#endif
+
     //子轮廓统计
     vector<int>	num_of_son(contours.size(), 0);
     for (int t = 0; t < hierarchy.size(); t++)
@@ -120,15 +181,16 @@ bool RuneDetector::searchOfAim()
         int index_temp = hierarchy[t][3];
         if (index_temp == -1)continue;
         num_of_son[index_temp]++;
+
+
     }
 
     for (iter = contours.begin(); iter != contours.end(); iter++)
     {
         if (contourArea(*iter) < src_.rows * AREA_LIMIT_MIN)continue;//面积限制
         RotatedRect rect = minAreaRect(*iter);
-
-        if (rect.size.width / rect.size.height > 0.7 && rect.size.width / rect.size.height < 1.2
-            || rect.size.height / rect.size.width > 0.7 && rect.size.height / rect.size.width < 1.2) //认为是R
+        if ((rect.size.width / rect.size.height > 0.7 && rect.size.width / rect.size.height < 1.2)
+            || (rect.size.height / rect.size.width > 0.7 && rect.size.height / rect.size.width < 1.2)) //认为是R
         {
             //子轮廓限制，但是由于现场效果未知，是写0还是写1要等到赛场提前上去试一下。
            // if (num_of_son[iter - contours.begin()] != R_SON_CONTOURS_NUM)continue;
@@ -139,25 +201,35 @@ bool RuneDetector::searchOfAim()
             R_.push_back(rect);
         }
 
-        if (rect.size.width / rect.size.height > 1.5 && rect.size.width / rect.size.height < 8
-            || rect.size.height / rect.size.width > 1.5 && rect.size.height / rect.size.width < 8)//认为是扇叶
+        //if(num_of_son[iter - contours.begin()] == AIM_SON_CONTOURS_NUM)
+        if ((rect.size.width / rect.size.height > 1.5 && rect.size.width / rect.size.height < 8)
+            || (rect.size.height / rect.size.width > 1.5 && rect.size.height / rect.size.width < 8)
+                )//认为是扇叶
         {
             //子轮廓检测(AIM_SON_CONTOURS_NUM=1)赛场上前试一下，如果结果不理想，就这句注释掉
             if (num_of_son[iter - contours.begin()] != AIM_SON_CONTOURS_NUM)continue;
-
+            cout<<"\n\n\nnum_of_son\n"<<num_of_son[iter - contours.begin()]<<"\nend\n\n";
             //邻域检测
             Point2f point[4];
             rect.points(point);
             if (getDistance(point[0], point[1]) > getDistance(point[1], point[2]))  swap(point[0], point[2]);//[0][1]是短边，[1][2]长边
             Point2f longMiddle = getMiddle(point[1], point[2]); // small
+#ifdef DEBUG
+    cout<<"1\n1\n1\n1\n"<<aim<<"1\n1\n1\n1\n";
+    Mat m;
+    src_.copyTo(m);
 
+    rectangle(m,rect.boundingRect(),Scalar(255,0,0),4);
+    imshow("preforcast",m);
+    waitKey(10);
+#endif
 
 
             Rect neighborhood = Rect(longMiddle.x - NEIGHBORHOOD_SCALE_AIM / 2, longMiddle.y - NEIGHBORHOOD_SCALE_AIM / 2, NEIGHBORHOOD_SCALE_AIM, NEIGHBORHOOD_SCALE_AIM);
 
             if(neighborhood.x<=0||neighborhood.y<=0)
             {
-                cout << "\n\n\n" << "114514" << "\n\n\n";
+                //cout << "\n\n\n" << "114514" << "\n\n\n";
                 continue;
             }
 
@@ -167,28 +239,42 @@ bool RuneDetector::searchOfAim()
 
             cout<<"\n\n\nneighborhood.y.x.+:"<<neighborhood.y<<"  "<<neighborhood.y + neighborhood.height<<"  "<<neighborhood.x<<" "<<neighborhood.x + neighborhood.width<<endl;
             cout << "dst.x: " << dst.rows << "   dst.y: " << dst.cols << endl << endl;
-            Mat roi = dst(Range(neighborhood.y, neighborhood.y + neighborhood.height), Range(neighborhood.x, neighborhood.x + neighborhood.width));
 
+            Mat roi = dst(Range(neighborhood.y, neighborhood.y + neighborhood.height>dst.rows?dst.rows:neighborhood.y + neighborhood.height),
+                          Range(neighborhood.x, neighborhood.x + neighborhood.width>dst.cols?dst.cols:neighborhood.x + neighborhood.width)
+                          );
+            cout<<"/nyes/n";
             if (static_cast<double>(mean(roi).val[0]) != 0)continue;
             //cout << "\n\n\n" <<"114514"<< "\n\n\n";
             int temp = hierarchy[iter-contours.begin()][2];
-            cout<<"temp:"<<temp<<endl;
+
             if(temp != -1)
             {
-                cout<<"temp:"<<temp<<endl;
+                //cout<<"\n\n\n\ntemp:"<<temp<<endl;
                 Aim_.push_back(minAreaRect(contours[temp]));//待击打扇叶的子轮廓为装甲板。
             }
         }
     }
+#ifdef DEBUG
+    cout<<"\n\ncontourse find complete\n\n";
+#endif
 
     if (R_.size() == 0)
     {
+#ifdef DEBUG
         cout << "warning:R_.size==0" << endl;
+        imshow("preforcast",src_);
+#endif
+
         return false;
     }
     if (Aim_.size() == 0)
     {
+#ifdef DEBUG
         cout << "warning:Aim_.size==0" << endl;
+        imshow("preforcast",src_);
+#endif
+
         return false;
     }
 
@@ -199,12 +285,24 @@ bool RuneDetector::searchOfAim()
     Aim = *Aim_.begin();
     r = R.center;
     aim = Aim.center;
+
+
+#ifdef DEBUG
+    cout<<"1\n1\n1\n1\n"<<aim<<"1\n1\n1\n1\n";
+    Mat m;
+    src_.copyTo(m);
+    circle(m,aim,10,Scalar(255,0,0),4);
+    imshow("preforcast",m);
+    waitKey(10);
+#endif
+
+
     return true;
 }
 
 void RuneDetector::checkBuffMode()
 {
-    if (i < 10)
+    if (i < 2)
     {
         buff_mode = WAIT_TO_CHECK;
         return;//帧数未到，不预测。
@@ -260,8 +358,10 @@ void RuneDetector::getforecastAim()
         }
     }
     float forecast_angle = Lagrange(d_time, d_angle, DELAY_TIME);
+    double out_x = src_.cols/2 + history[i % 30].distance * cos((forecast_angle * 3.1415926) / 180);
+    double out_y = src_.rows/2 + history[i % 30].distance * sin((forecast_angle * 3.1415926) / 180);/*
     double out_x = r.x + history[i % 30].distance * cos((forecast_angle * 3.1415926) / 180);
-    double out_y = r.y + history[i % 30].distance * sin((forecast_angle * 3.1415926) / 180);
+    double out_y = r.y + history[i % 30].distance * sin((forecast_angle * 3.1415926) / 180);*/
     out= Point2f(out_x, out_y);
     return;
 }
@@ -287,7 +387,7 @@ double RuneDetector::Lagrange(const vector<double>& X, const vector<double>& Y, 
 
 void RuneDetector::readFromXML()
 {
-    FileStorage fs("/home/ysu/Desktop/YSU_2021_Infantrybb/RuneDetector/buff_.xml", FileStorage::READ);//要求xml文件根节点必须为<opencv_storage>
+    FileStorage fs("/home/robomaster/qtcreator_workspace/YSU_2022_sentry_20220605/YSU_2022_stentry/RuneDetector/buff_.xml", FileStorage::READ);//要求xml文件根节点必须为<opencv_storage>
     //关于图像预处理
     fs["pretreatMode"] >> pretreatMode;
     fs["color_aim"] >> color_aim;

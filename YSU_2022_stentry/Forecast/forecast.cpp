@@ -8,12 +8,12 @@
 打符的话可根据结果理想程度选用sin函数或指数函数
 */
 
-
+// #define DEBUG
 #include "Main/headfiles.h"
 #include "Forecast/forecast.h"
 #include "Timer/Timer.h"
-
 // #define DEBUG 1
+#define max_time 60000
 Mat show;
 double getDistance(const Point2f &a,const Point2f &b)
 {
@@ -100,13 +100,14 @@ bool rect_line_intersection(const vector<Point2d> & line, const vector<Point2d>&
 
 Forecast::Forecast()
 {};
-
-  //Cv_Kalman_t kalman_p;
-  //Cv_Kalman_t kalman_v;
-
+//cv::KalmanFilter KF(stateNum, measureNum, 0) ;
+Kalman kalman_p;
+Kalman kalman_v;
 void Forecast::Init()
 {
-
+    kalman_p.Kalman_init();
+    kalman_v.Kalman_init();
+//    Kalman_init(&KF);
 
     cout<<"forecast init begin"<<endl;
     string file_path="../xml_path/forecast.xml";
@@ -174,7 +175,8 @@ void Forecast::Init()
 }
 
 
- vector<Point2d>& Forecast::forcast(vector<Point2d> &original,double time)
+ vector<Point2d>& Forecast::
+ forcast(vector<Point2d> &original,double time)
  {
 #ifdef DEBUG
     show=Mat(1024,1080,CV_8UC3,Scalar(0,0,0));//观测结果，预测结果可视化
@@ -195,7 +197,13 @@ void Forecast::Init()
          }
 
      }
+     //4.11更改，设置时间最大值
+      int time_temp=time;
+      time_temp=time_temp%max_time;
 
+      time=time_temp;
+
+      //***
       now=chuo(original,time);//
       original_vec_length=sqrt(pow(now.rect[0].x-now.center.x,2)+pow(now.rect[0].y-now.center.y,2));
       for(int i=0;i<4;i++)//记录四个顶点相对于中心点的方向向量。
@@ -213,14 +221,56 @@ void Forecast::Init()
           while(record_history.size()>record_history_size){record_history.erase(record_history.begin());}
       }
 
-      if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
+
+
+      cout<<"                          record_history "<<record_history.size()<<endl;
+      if(record_history.size()>=3)//记录数量达到观测需要再进行预测
       {
         result.clear();
 
         //预测Api，仅针对中心点进行预测。
-        get_forecast();
+        //get_forecast();
+
+        Point2d speed={0,0};
+        vector<Point2d>speeds;
+        for(int i=1;i<record_history.size();i++)
+        {
+
+            if((record_history[i].time-record_history[i-1].time)!=0)
+            {
+                speeds.emplace_back(
+                            Point(abs(record_history[i].center.x-record_history[i-1].center.x)/ abs(record_history[i].time-record_history[i-1].time),
+                                 (abs(record_history[i].center.y-record_history[i-1].center.y)/ abs(record_history[i].time-record_history[i-1].time)
+                        )));
+            }
+        }
+        for(int i=0;i<speeds.size();i++)
+        {
+            speed+=speeds[i];
+        }
+        if(speeds.size()!=0)
+        {
+            speed.x/=speeds.size();
+            speed.y/=speeds.size();
+        }
+        else
+        {
+            speed={0,0};
+        }
 
 
+
+
+
+//        result_center=Kalman_filter(&KF,result_center );
+//zzrtest
+
+
+
+              //result_center=kalman.Kalman_filter(result_center );
+            speed=kalman_v.Kalman_filter(speed);
+            result_center=Point(record_history[record_history.size()-1].center.x,record_history[record_history.size()-1].center.y);
+            result_center=kalman_p.Kalman_filter(result_center+speed*pre_time);
 
         //对输出结果进行卡尔曼滤波视调参情况决定是否使用。
 //        result_center.x=p_kal[0]->KalmanFilter(result_center.x);
@@ -315,7 +365,14 @@ void Forecast::Init()
     //生成预测时间，此步应尽可能靠近计算时间，以减少不必要的误差
     double  aim_time;
      getSystime(aim_time);
+     //4.11更改，设置时间最大值
+    int temp_time=aim_time;
+    temp_time=temp_time%max_time;
+    aim_time=temp_time;
+//    //****
+     //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
      aim_time+=pre_time;
+
      result_center=Point2d(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));
 }
 

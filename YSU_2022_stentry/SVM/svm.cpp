@@ -1,6 +1,5 @@
 #include"SVM/svm.h"
 // #define DEBUG
-static int i =0;
 
 /*
 svm，用于筛选当前结果是否为工程/误识别
@@ -40,11 +39,7 @@ float YSU_SVM::getNum(cv::Mat& original)
 {
      PretreatImage(original);
      resize(original,copy_resize,cv::Size(64,64),0,0,cv::INTER_LINEAR);
-
-     string a= "/home/zjw/image/1/"+to_string(i/5)+".jpg";
-     cv::imwrite(a,copy_resize);
-     i++;
-     //convertTo3Channels(copy_resize);
+     convertTo3Channels(copy_resize);
 
      descriptors.clear();
      hog=cv::HOGDescriptor(cv::Size(64,64),cv::Size(16,16),cv::Size(8,8),cv::Size(8,8),9);

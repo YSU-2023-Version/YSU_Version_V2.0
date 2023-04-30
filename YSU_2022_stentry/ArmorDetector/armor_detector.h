@@ -11,7 +11,7 @@
 */
 struct Rect_VectorPoint {
     /* data */
-    std::vector<cv::Point2d> points;
+    std::vector<cv::Point2f> points;
     cv::RotatedRect rect;
 };
 
@@ -37,23 +37,23 @@ public:
 
 private:
 
-    Yolov5* yolov5_detector_;                                       // yolov5 detector.
+    Yolov5* yolov5_detector_;                                                                 // yolov5 detector.
 
-    std::vector<DetectRect> detect_res_armor_;                      // res rects
+    std::vector<DetectRect> detect_res_armor_;                            // res rects
 
-    cv::Mat src_image_;                                             // Source image.
-    cv::Mat warpPerspective_dst;                                    // cnn????
-    cv::Point2f Perspective_Transformation_src[4];                  // ????
-    cv::Point2f Perspective_Transformation_dst[4];                  // ????
-    cv::Point2f lu, ld, ru, rd;                                     // 四个角点
+    cv::Mat src_image_;                                                                              // Source image.
+    cv::Mat warpPerspective_dst;                                                          // cnn????
+    cv::Point2f Perspective_Transformation_src[4];                      // ??? ?
+    cv::Point2f Perspective_Transformation_dst[4];                     // ????
+    cv::Point2f lu, ld, ru, rd;                                                                      // 四个角点
 
     std::vector<Rect_VectorPoint> match_armors_;                    // Match to armor plate set.
     std::vector<cv::Point2d> target_armor_point_set;                // 
 
-    int index1;                                                     // ????
-    int fps;                                                        // 帧率
+    int index1;                                                                                                // ????
+    int fps;                                                                                                        // 帧率
 
-    std::vector<int> object_num;                                    // 历史目标数量
+    std::vector<int> object_num;                                                          // 历史目标数量
     cv::Ptr<cv::ml::SVM> svm;
     int blue_color_threshold;
     int red_color_threshold;
@@ -93,15 +93,16 @@ private:
 
     static int record_history_num;
     float wu_cha_yun_xu;
-    static vector<cv::RotatedRect> record_history_arr;
+    static vector<Rect_VectorPoint> record_history_arr;
     vector<int> record_history_arr_num;
 
     float Kalman_Q,Kalman_R;
-    vector<unique_ptr<Kalman_t>> p_kal;
+    vector<unique_ptr<Kalman>> p_kal;
 
     unique_ptr<YSU_SVM> p_svm;
     cv::Mat src_image_copy; //????????????????
     cv::Mat matsvm;
+    cv::Mat warpPerspective_mat=cv::Mat::zeros(3,3,CV_32FC1);//??????
 
 
 };

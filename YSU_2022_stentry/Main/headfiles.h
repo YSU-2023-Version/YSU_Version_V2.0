@@ -20,8 +20,8 @@
 #include <vector>
 #include <chrono>
 
-// 注释掉代表识别蓝色，不注释识别红色
-#define ENEMY_COLOR_IS_RED
+//1-识别红色 0-识别蓝色
+#define ENEMY_COLOR_IS_RED 0
 
 using namespace std;
 using namespace cv;

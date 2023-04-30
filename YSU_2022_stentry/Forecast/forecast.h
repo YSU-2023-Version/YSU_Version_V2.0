@@ -70,7 +70,7 @@ private:
     double *weight[2];//预测历史帧权重。
     double *t;
 
-
+    vector<Point2d> centers;//用于卡尔曼计算速度
 
 };
 

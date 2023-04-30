@@ -35,7 +35,7 @@ private:
     unsigned char           *g_pRgbBuffer;     //处理后数据缓存区
 
     Mat sham_img;
-
+    int error_num;
 };
 
 

@@ -8,7 +8,7 @@ typedef unsigned char      uint8_t;
 typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 
-/***********************************    ￄ1�7?    DJI提供的CRC� �检函数   ￄ1�7?  ***********************************/
+/***********************************    ￄ1�7?    DJI提供的CRC� �检函数   ￄ1�7?  ***********************************/
 /*
 ** Descriptions: CRC8 checksum function
 ** Input: Data to check,Stream length, initialized checksum
@@ -111,7 +111,7 @@ void Communication::Append_CRC16_Check_Sum(uint8_t * pchMessage, uint32_t dwLeng
     pchMessage[dwLength - 2] = (uint8_t)(wCRC & 0x00ff);
     pchMessage[dwLength - 1] = (uint8_t)((wCRC >> 8) & 0x00ff);
 }
-/***********************************    ￄ1�7?    DJI提供的CRC� �检函数   ￄ1�7?  ***********************************/
+/***********************************    ￄ1�7?    DJI提供的CRC� �检函数   ￄ1�7?  ***********************************/
 
 
 /**********************************由Kirs使用CppLinuxSerial重写************************************/
@@ -150,46 +150,40 @@ bool Communication::close()
         return false;
 }
 
+//数据帧定义
 void Communication::sendMsg()
 {
     // buyao kan xiamian de nahang zhushi nashi bubin de xieyi
-    // 数据ￄ1�7?                               固定ￄ1�7?                数据段长ￄ1�7? 包序ￄ1�7? CRC8  帧类ￄ1�7?                             yerr                perr               dis                  shoot    aim_mode                                    延迟时间      CRC16
-    //uint8_t writeBuf[21] = {FrameHeader, 0x00, 0x0A, 0x00,   0x00,  FrameTypePC2MCU, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    (uint8_t)Infantry.aim_mode, 0x00, 0x00, 0x00, 0x00};
-    uint8_t writeBuf[21] = {0xA1, 14, 0, 0x00, 0x00,   \
+    // 数据ￄ1�7?                               固定ￄ1�7?                数据段长ￄ1�7? 包序ￄ1�7? CRC8  帧类ￄ1�7?                             yerr                perr               dis                  shoot    aim_mode                                    延迟时间      CRC16
+    //uint8_t writeBuf[19] = {FrameHeader, 0x00, 0x0A, 0x00,   0x00,  FrameTypePC2MCU, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    (uint8_t)Infantry.aim_mode, 0x00, 0x00, 0x00, 0x00};
+    uint8_t writeBuf[19] = {0xA1, 14, 0, 0x00, 0x00,   \
                             0x00, 0x00, 0x00, 0x00, \
                             0x00, 0x00, 0x00, 0x00,   \
                             0x00, 0x00, 0x00, 0x00,   \
-                            0x00, 0x00, \
                             0x00, 0x00};
     Append_CRC8_Check_Sum(writeBuf, 5);
 
-    float_to_byte temp_data_y;
-    temp_data_y.f_data = Infantry.amorAttackmsg.yawErr;
-    writeBuf[5] = temp_data_y.data[0];
-    writeBuf[6] = temp_data_y.data[1];
-    writeBuf[7] = temp_data_y.data[2];
-    writeBuf[8] = temp_data_y.data[3];
+    short_to_byte temp_data_y;
+    temp_data_y.s_data = (short)(Infantry.amorAttackmsg.yawErr * 10);
+    writeBuf[7] = temp_data_y.data[0];
+    writeBuf[8] = temp_data_y.data[1];
 
-    float_to_byte temp_data_p;
-    temp_data_p.f_data = Infantry.amorAttackmsg.pitchErr;
+    short_to_byte temp_data_p;
+    temp_data_p.s_data = (short)(Infantry.amorAttackmsg.pitchErr * 10);
     writeBuf[9] = temp_data_p.data[0];
     writeBuf[10] = temp_data_p.data[1];
-    writeBuf[11] = temp_data_p.data[2];
-    writeBuf[12] = temp_data_p.data[3];
 
-    float_to_byte temp_data_d;
-    temp_data_d.f_data = Infantry.amorAttackmsg.distance;
-    writeBuf[13] = temp_data_d.data[0];
-    writeBuf[14] = temp_data_d.data[1];
-    writeBuf[15] = temp_data_d.data[2];
-    writeBuf[16] = temp_data_d.data[3];
+    short_to_byte temp_data_d;
+    temp_data_d.s_data = (short)(Infantry.amorAttackmsg.distance * 10);
+    writeBuf[11] = temp_data_d.data[0];
+    writeBuf[12] = temp_data_d.data[1];
 
-    writeBuf[17] = Infantry.amorAttackmsg.shootFlag;
-    writeBuf[18] = Infantry.amorAttackmsg.holderFlag;
+    writeBuf[13] = Infantry.amorAttackmsg.shootFlag;
+    writeBuf[14] = Infantry.amorAttackmsg.holderFlag;
 
-    Append_CRC16_Check_Sum(writeBuf, 21);
+    Append_CRC16_Check_Sum(writeBuf, 19);
     
-    std::vector<uint8_t> writeVec(writeBuf, writeBuf + 21);
+    std::vector<uint8_t> writeVec(writeBuf, writeBuf + 19);
     serialport.WriteBinary(writeVec);
 }
 
@@ -258,7 +252,7 @@ void Communication::communication(Infantry_Struct Infantry)
     sendMsg();
     int timedelay = 5;
     auto t1 = std::chrono::high_resolution_clock::now();
-    while (1) {
+    while (1) {//电控使用闲时中断，需要有延迟。不知道为何，usleep()没用
         auto t2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t2 - t1;
         if(elapsed.count() >= timedelay) break;

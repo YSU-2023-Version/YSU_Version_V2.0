@@ -1,7 +1,5 @@
 #include "Main/headfiles.h"
 #include "Pose/angle_solver.h"
-#define x_center_move 7
-#define y_center_move 7//the point_O move
 
 
 AngleSolver::AngleSolver()
@@ -38,28 +36,30 @@ double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
 {
     if(!(object_armor_points_[0]==Point2d(0,0)&&object_armor_points_[1]==Point2d(0,0)&&object_armor_points_[2]==Point2d(0,0)&&object_armor_points_[3]==Point2d(0,0)))
     {
-
-        waitKey(1);
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
-    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+x_center_move;
-    _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+y_center_move;
+    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
+    _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
 
-    cout<<"_                        \nxErr:"<<_xErr<<endl;
-    cout<<"_                        \nyErr:"<<_yErr<<endl;
-    gravity_comp();
+    //cout<<"_xErr:"<<_xErr<<endl;
+    //cout<<"_yErr:"<<_yErr<<endl;
+
+    //gravity_comp();
+    if(_yErr < 15 && _yErr > -15)
+    {
+        p_y_err[0] = _xErr;
+        p_y_err[1] = _yErr;
+    }
+    else
+    {
+        p_y_err[0] = 0;
+        p_y_err[1] = 0;
+    }
     double x_pos=tVec.at<double>(0,0);
     double y_pos=tVec.at<double>(1,0);
     double z_pos=tVec.at<double>(2,0);
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
-    shoot=1;
-    if(distance_3d>7000)
-    {
-        shoot=0;
-     cout<<"                   \n\n\n  1111111111111114514"<<endl;
-    }
-
     cout<<"distance= "<<distance_3d<<endl;
-
+    shoot=1;
     }
     else
     {
@@ -67,12 +67,6 @@ double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
         p_y_err[1] = 0;//top_min=-19
         shoot=0;
     }
-    if(p_y_err[1]>5)
-    {
-        cout<<"         \n\n\n\n\n\n\n\n\n";
-
-    }
-    cout<<"     `           yaw:"<<p_y_err[1];
     return p_y_err;
 }
 int AngleSolver::shoot_get()

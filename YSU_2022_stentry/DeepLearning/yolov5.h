@@ -39,7 +39,7 @@ struct DetectRect{
     cv::Point min_point;
     cv::Point max_point;
     cv::Rect rect;
-    std::vector<cv::Point> points;
+    std::vector<cv::Point2f> points;
     cv::Point cen_p;
     int class_id;
     float class_p;

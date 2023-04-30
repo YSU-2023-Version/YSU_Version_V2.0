@@ -29,8 +29,10 @@ void ThreadManager::Produce(){
     while(1)
     {
         auto t1 = std::chrono::high_resolution_clock::now();
+
         buffer[i]=p_camera_manager_ -> ReadImage();
         getSystime(sys_time[i]);
+        //cout << "i : " << i << " j: " << j;
 
 
         condition.notify_one(); //通知wait()函数，解除阻止
@@ -56,9 +58,12 @@ void ThreadManager::Consume(){
             std::unique_lock <std::mutex> lock(mutex);
             condition.wait(lock);
         }
+        cout<<"1\n";
         p_armor_detector_ -> LoadImage(buffer[j]);
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(   p_armor_detector_ -> DetectObjectArmor()  )   );
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+ //       p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(   p_armor_detector_ -> DetectObjectArmor()  )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+
+        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
 
         // std::promise<Point2f> shoot;

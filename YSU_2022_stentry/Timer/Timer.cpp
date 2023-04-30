@@ -34,6 +34,8 @@ void getSystime(Systime &t)
     timeval tv;
     gettimeofday(&tv, nullptr);
     t = tv.tv_usec / 1000.0 + tv.tv_sec * 1000.0 - time_base;
+
+
 }
 
 #elif defined(WINDOWS)
