@@ -5,24 +5,21 @@
 */
 
 #ifndef ARMOR_TRACK
+#define ARMOR_TRACK
 #include "Main/headfiles.h"
 #include "Detector/yolov5.h"
+#include "Predictor/armor_predictor.h"
 
-
-class armor_track{
+class ArmorTrack{
     public:
 
 
     private:
 
     public:
-    /**
-     * 空构造函数
-    */
-    anmor_track(){}
-    /**
-     * 带参数构造函数
-    */
+
+    ArmorTrack(){}
+    
 
     /**
      * 
