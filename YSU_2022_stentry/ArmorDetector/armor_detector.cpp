@@ -2,7 +2,6 @@
 #include "ArmorDetector/armor_detector.h"
 #include "Pose/angle_solver.h"
 #include  <time.h>
-//  #define USE_OLD_DETECTOR // 使用老的detector（传统视觉）
 
  #define DEBUG 1
 
@@ -86,15 +85,14 @@ void ArmorDetector::InitArmor()
 
         fr["wu_cha_yun_xu"]>>wu_cha_yun_xu;
         fr.release();
-cout<<"armor_xml loading finished"<<endl;
+        cout<<"armor_xml loading finished"<<endl;
 
          p_svm->InitSVM();
 
         record_history_arr.clear();
-#ifndef USE_OLD_DETECTOR
         this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
         this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
-#endif  // 这个部分可能会消耗比较多的时间, 但是是正常现象
+        // 这个部分可能会消耗比较多的时间, 但是是正常现象
         cout<<"armor_detector init finished"<<endl;
 }
 
