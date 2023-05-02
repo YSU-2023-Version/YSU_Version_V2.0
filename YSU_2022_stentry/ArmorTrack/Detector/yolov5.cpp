@@ -4,7 +4,7 @@
  * @details 通过openvino实现调用模型，加速模型推理
 */
 
-#include "DeepLearning/yolov5.h"
+#include "ArmorTrack/Detector/yolov5.h"
 
 // #define DEBUG
 #define WINDOW_NAME "res_show"
@@ -58,7 +58,7 @@ void Yolov5::read_network(){
     this->m_input_info = InferenceEngine::InputsDataMap(network.getInputsInfo());
     this->m_output_info = InferenceEngine::OutputsDataMap(network.getOutputsInfo());
 
-    //获取输入并进行设置（第一种方式）
+    //获取输入并进行设置
     auto item = m_input_info.begin();
     image_info_name = item->first;         //获取image_info输入的名字
     auto image_info_ptr = item->second;    //获取image_info输入的指针
@@ -67,7 +67,7 @@ void Yolov5::read_network(){
     image_info_ptr->setLayout(InferenceEngine::Layout::NCHW);
     image_info_ptr->getPreProcess().setColorFormat(InferenceEngine::ColorFormat::RGB);
     image_info_ptr->getPreProcess().setResizeAlgorithm(RESIZE_BILINEAR);
-    //获取输出并进行设置(第二种方式)
+    //获取输出并进行设置
     for (auto &output : m_output_info){
         output.second->setPrecision(Precision::FP32);
     }
@@ -97,6 +97,7 @@ void Yolov5::clear_work(){
 /**
  * @brief 主要模型推理的函数
  * @author 可莉不知道哦
+ * @return vector<DetectRect>&
 */
 vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
     #ifdef DEBUG
