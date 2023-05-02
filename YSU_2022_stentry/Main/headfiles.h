@@ -19,6 +19,8 @@
 #include <inference_engine.hpp>
 #include <vector>
 #include <chrono>
+#include <deque>
+#include <queue>
 
 //1-识别红色 0-识别蓝色
 #define ENEMY_COLOR_IS_RED 0

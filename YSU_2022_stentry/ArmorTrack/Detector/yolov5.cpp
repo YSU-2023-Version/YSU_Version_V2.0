@@ -198,7 +198,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
     std::vector<DetectRect> final_rects;
 
     for (int i = 0; i < num_detections; ++i) {
-        // 获得当前的grid, xy方向上的偏移数量
+        // 获得当前的grid, xy方向上的偏移数量，如果换模型这些参数也需要变
         int grid, x_num, y_num;
         if(i < 2704){
             grid = 8;

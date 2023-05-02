@@ -3,7 +3,7 @@
 
 class ArmorPredictor{
     public:
-    
+
     
 
     private:
