@@ -47,23 +47,23 @@ void ArmorDetector::InitArmor()
     //cout<<"装甲板检测初始化成功！"<<endl;
     cout<<"armor_detector init begin"<<endl;
 
-         string file_path="../xml_path/armor_limited.xml";
-         cv::FileStorage fr;
-         fr.open(file_path,cv::FileStorage::READ);
-         while(!fr.isOpened()){
-               cout<<"armor_xml floading failed..."<<endl;
-              fr=cv::FileStorage(file_path,cv::FileStorage::READ);
-              fr.open(file_path,cv::FileStorage::READ);
-         }
+    string file_path="../xml_path/armor_limited.xml";
+    cv::FileStorage fr;
+    fr.open(file_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        cout<<"armor_xml floading failed..."<<endl;
+        fr=cv::FileStorage(file_path,cv::FileStorage::READ);
+        fr.open(file_path,cv::FileStorage::READ);
+    }
 
-        fr["contour_area_min"]>>contour_area_min;
-        fr["contour_area_max"]>>contour_area_max;
+    fr["contour_area_min"]>>contour_area_min;
+    fr["contour_area_max"]>>contour_area_max;
 
-        fr["contour_width_height_ratio_max"]>>contour_width_height_ratio_max;
-        fr["contour_width_height_ratio_min"]>>contour_width_height_ratio_min;
+    fr["contour_width_height_ratio_max"]>>contour_width_height_ratio_max;
+    fr["contour_width_height_ratio_min"]>>contour_width_height_ratio_min;
 
-        fr["contour_angle_max"]>>contour_angle_max;
-        fr["contour_div_rect"]>>contour_div_rect;
+    fr["contour_angle_max"]>>contour_angle_max;
+    fr["contour_div_rect"]>>contour_div_rect;
 
         fr["hero_priority"]>>hero_priority;
         fr["hero_zjb_ratio_max"]>>ArmorDetector:: hero_zjb_ratio_max;
@@ -87,7 +87,7 @@ void ArmorDetector::InitArmor()
         fr.release();
         cout<<"armor_xml loading finished"<<endl;
 
-         p_svm->InitSVM();
+        p_svm->InitSVM();
 
         record_history_arr.clear();
         this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
