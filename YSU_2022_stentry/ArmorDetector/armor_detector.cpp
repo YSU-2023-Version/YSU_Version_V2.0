@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-#define DEBUG 1
+ #define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -13,7 +13,7 @@ float ArmorDetector::score_of_hero=1;
 float ArmorDetector::score_of_area=1;
 float ArmorDetector::score_of_last=1;
 
-vector<Rect_VectorPoint> ArmorDetector::record_history_arr;
+vector<cv::RotatedRect> ArmorDetector::record_history_arr;
 
 
 float get_angle(const cv::Point2f &a,const cv::Point2f &b)
@@ -97,6 +97,7 @@ void ArmorDetector::InitArmor()
     this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
     // 这个部分可能会消耗比较多的时间, 但是是正常现象
     std::cout << "armor_detector init finished" << std::endl;
+
 }
 
 void ArmorDetector::LoadImage(cv::Mat &frame)
