@@ -41,59 +41,63 @@ ArmorDetector::ArmorDetector()://  1
 {}
 
 
-
+/**
+ * @brief 初始化代码，包含：xml文件读取和深度学习模型初始化
+*/
 void ArmorDetector::InitArmor()
 {
     //cout<<"装甲板检测初始化成功！"<<endl;
     cout<<"armor_detector init begin"<<endl;
 
-         string file_path="../xml_path/armor_limited.xml";
-         cv::FileStorage fr;
-         fr.open(file_path,cv::FileStorage::READ);
-         while(!fr.isOpened()){
-               cout<<"armor_xml floading failed..."<<endl;
-              fr=cv::FileStorage(file_path,cv::FileStorage::READ);
-              fr.open(file_path,cv::FileStorage::READ);
-         }
+    string file_path="../xml_path/armor_limited.xml";
+    cv::FileStorage fr;
+    fr.open(file_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        cout<<"armor_xml floading failed..."<<endl;
+        fr=cv::FileStorage(file_path,cv::FileStorage::READ);
+        fr.open(file_path,cv::FileStorage::READ);
+    }
+    // 部分参数可能已经弃用
+    fr["contour_area_min"]>>contour_area_min;
+    fr["contour_area_max"]>>contour_area_max;
 
-        fr["contour_area_min"]>>contour_area_min;
-        fr["contour_area_max"]>>contour_area_max;
+    fr["contour_width_height_ratio_max"]>>contour_width_height_ratio_max;
+    fr["contour_width_height_ratio_min"]>>contour_width_height_ratio_min;
 
-        fr["contour_width_height_ratio_max"]>>contour_width_height_ratio_max;
-        fr["contour_width_height_ratio_min"]>>contour_width_height_ratio_min;
+    fr["contour_angle_max"]>>contour_angle_max;
+    fr["contour_div_rect"]>>contour_div_rect;
 
-        fr["contour_angle_max"]>>contour_angle_max;
-        fr["contour_div_rect"]>>contour_div_rect;
+    fr["hero_priority"]>>hero_priority;
+    fr["hero_zjb_ratio_max"]>>ArmorDetector:: hero_zjb_ratio_max;
+    fr["hero_zjb_ratio_min"]>>ArmorDetector:: hero_zjb_ratio_min;
+    fr["score_of_hero"]>>ArmorDetector::score_of_hero;
+    fr["score_of_area"]>>ArmorDetector::score_of_area;
+    fr["score_of_last"]>>ArmorDetector::score_of_last;
+    fr["record_history_num"]>>record_history_num;
 
-        fr["hero_priority"]>>hero_priority;
-        fr["hero_zjb_ratio_max"]>>ArmorDetector:: hero_zjb_ratio_max;
-        fr["hero_zjb_ratio_min"]>>ArmorDetector:: hero_zjb_ratio_min;
-        fr["score_of_hero"]>>ArmorDetector::score_of_hero;
-        fr["score_of_area"]>>ArmorDetector::score_of_area;
-        fr["score_of_last"]>>ArmorDetector::score_of_last;
-        fr["record_history_num"]>>record_history_num;
+    fr["two_light_strips_angle_sub"]>>two_light_strips_angle_sub;
+    fr["two_light_strips_ratio_min"]>>two_light_strips_ratio_min;
 
+    fr["objRect_angle_max"]>>objRect_angle_max;
+    fr["height_width_ratio_max"]>>height_width_ratio_max;
+    fr["height_width_ratio_min"]>>height_width_ratio_min;
+    fr["Kalman_Q"]>>Kalman_Q;
+    fr["Kalman_R"]>>Kalman_R;
 
-        fr["two_light_strips_angle_sub"]>>two_light_strips_angle_sub;
-        fr["two_light_strips_ratio_min"]>>two_light_strips_ratio_min;
+    fr["wu_cha_yun_xu"]>>wu_cha_yun_xu;
+    fr.release();
+    std::cout<<"armor_xml loading finished" << std::endl;
 
-        fr["objRect_angle_max"]>>objRect_angle_max;
-        fr["height_width_ratio_max"]>>height_width_ratio_max;
-        fr["height_width_ratio_min"]>>height_width_ratio_min;
-        fr["Kalman_Q"]>>Kalman_Q;
-        fr["Kalman_R"]>>Kalman_R;
+    p_svm->InitSVM();
+    // 深度学习部分，稳定可用
+    std::cout << "deep learning yolox model init" << std::endl;
+    record_history_arr.clear();
+    // 初始化深度学习算法类
+    this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
+    this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
+    // 这个部分可能会消耗比较多的时间, 但是是正常现象
+    std::cout << "armor_detector init finished" << std::endl;
 
-        fr["wu_cha_yun_xu"]>>wu_cha_yun_xu;
-        fr.release();
-        cout<<"armor_xml loading finished"<<endl;
-
-         p_svm->InitSVM();
-
-        record_history_arr.clear();
-        this->yolov5_detector_ = new Yolov5("../model/model/opt-0527-001.xml", "../model/model/opt-0527-001.bin", 416, 416); // 创建yolov5detector对象
-        this->yolov5_detector_->init_yolov5_detector(); // init yolov5 detector 模型加载部分
-        // 这个部分可能会消耗比较多的时间, 但是是正常现象
-        cout<<"armor_detector init finished"<<endl;
 }
 
 void ArmorDetector::LoadImage(cv::Mat &frame)
@@ -105,7 +109,7 @@ void ArmorDetector::LoadImage(cv::Mat &frame)
 /**
  * @brief 原代码取最左边的矩形，改进代码是取面积最大的+预测
  *
- * @attention 在调用识别函数之后使用，默认是筛选最大的装甲板，也可以优先历史帧
+ * @attention 在调用识别函数之后使用，默认是筛选最大的装甲板，也可以优先历史帧，具体模式需要修改xml文件中的hero_priority参数
  *
  * @param void
  * @return void
@@ -200,25 +204,23 @@ void ArmorDetector::ScreenArmor(){
 
 
 #ifdef DEBUG
-        line(src_image_,lu,ld,Scalar(255,255,255),3);
-        line(src_image_,ld,rd,Scalar(255,255,255),3);
-        line(src_image_,rd,ru,Scalar(255,255,255),3);
-        line(src_image_,ru,lu,Scalar(255,255,255),3);
-        imshow("src",src_image_);
-        waitKey(1);
+            line(src_image_,lu,ld,Scalar(255,255,255),3);
+            line(src_image_,ld,rd,Scalar(255,255,255),3);
+            line(src_image_,rd,ru,Scalar(255,255,255),3);
+            line(src_image_,ru,lu,Scalar(255,255,255),3);
+            imshow("src",src_image_);
+            waitKey(1);
 #endif
-        // float temp=p_svm->getNum(warpPerspective_dst)-2;
-        // 短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
-        // 空，但是没找到解决方案。
-        if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1){//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
-            if((1+id)>=match_armors_.size())break;
-            else match_armors_[++id].points(vertices);
-        }else{
-            break;
+            // float temp=p_svm->getNum(warpPerspective_dst)-2;
+            // 短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
+            // 空，但是没找到解决方案。
+            if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1){//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
+                if((1+id)>=match_armors_.size())break;
+                else match_armors_[++id].rect.points(vertices);
+            }else{
+                break;
+            }
         }
-        }
-
-
 //        for(int i=0;i<4;i++)
 //       {
 //           vertices[i].x=p_kal[2*i]->KalmanFilter(vertices[i].x);
@@ -300,12 +302,12 @@ vector<Point2d>& ArmorDetector::DetectObjectArmor(){
 }
 
 /**
- * @brief 保存图片
+ * @brief 保存图片，在训练赛中可以使用这个函数记录图片用于标注数据集
 */
 void ArmorDetector::baocun()
 {
-        imgname = "./debug_shortcut/"+to_string(f++) + ".jpg"; //输出文件名为 f.jpg, 保留在工程文件夹中
-        imwrite(imgname, src_image_);
+    imgname = "./debug_shortcut/"+to_string(f++) + ".jpg"; //输出文件名为 f.jpg, 保留在工程文件夹中
+    imwrite(imgname, src_image_);
 }
 
 cv::RotatedRect ArmorDetector::boundingRRect(const cv::RotatedRect & left, const cv::RotatedRect & right){
@@ -350,7 +352,7 @@ void ArmorDetector::PerspectiveTransformation(){
 //    circle(src_image_, Perspective_Transformation_src[2], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
 //    circle(src_image_, Perspective_Transformation_src[3], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
 
-     warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
+    warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
 #endif
 }
 
