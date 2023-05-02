@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
- #define DEBUG 1
+#define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -47,13 +47,13 @@ ArmorDetector::ArmorDetector()://  1
 void ArmorDetector::InitArmor()
 {
     //cout<<"装甲板检测初始化成功！"<<endl;
-    cout<<"armor_detector init begin"<<endl;
+    std::cout << "armor_detector init begin" << std::endl;
 
-    string file_path="../xml_path/armor_limited.xml";
+    std::string file_path="../xml_path/armor_limited.xml";
     cv::FileStorage fr;
     fr.open(file_path,cv::FileStorage::READ);
     while(!fr.isOpened()){
-        cout<<"armor_xml floading failed..."<<endl;
+        std::cout<<"armor_xml floading failed..." << std::endl;
         fr=cv::FileStorage(file_path,cv::FileStorage::READ);
         fr.open(file_path,cv::FileStorage::READ);
     }
