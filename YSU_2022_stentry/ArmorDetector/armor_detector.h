@@ -1,3 +1,9 @@
+/**
+ * @brief 本文件armor_detector.cpp是目标装甲板识别的代码，截止到2023.5.2为之，添加了深度学习模块，具体为直接调用yolov5.h中的算法类实现对模型的调用。
+ *          其次就是继承了原先代码的对识别后的四点进行后续处理的代码。
+ * @attention ArmorDetector内部某些成员变量可能已经弃用没来得及清理
+*/
+
 #ifndef ARMORDETECTOR_H
 #define ARMORDETECTOR_H
 
@@ -37,28 +43,26 @@ public:
 
 private:
 
-    Yolov5* yolov5_detector_;                                                                 // yolov5 detector.
+    Yolov5* yolov5_detector_;                                                     // yolox识别器
+    std::vector<DetectRect> detect_res_armor_;                                    // yolox模型识别到的框，所有信息整合到了DetectRect结构体
+    cv::Mat src_image_;                                                           // 输入图像
+    cv::Mat warpPerspective_dst;                                                  // 预处理输出图像
+    cv::Point2f Perspective_Transformation_src[4];                                // 
+    cv::Point2f Perspective_Transformation_dst[4];                                // ????
+    cv::Point2f lu, ld, ru, rd;                                                   // 结果的四个点坐标
 
-    std::vector<DetectRect> detect_res_armor_;                            // res rects
+    std::vector<Rect_VectorPoint> match_armors_;                                  // 匹配到的装甲板，结构体中有rect和points，points是原始四点模型结果
+    std::vector<cv::Point2d> target_armor_point_set;                              // 四点（具体用于?）
 
-    cv::Mat src_image_;                                                                              // Source image.
-    cv::Mat warpPerspective_dst;                                                          // cnn????
-    cv::Point2f Perspective_Transformation_src[4];                      // ??? ?
-    cv::Point2f Perspective_Transformation_dst[4];                     // ????
-    cv::Point2f lu, ld, ru, rd;                                                                      // 四个角点
+    int index1;                                                                   // ????
+    int fps;                                                                      // 帧率
 
-    std::vector<Rect_VectorPoint> match_armors_;                    // Match to armor plate set.
-    std::vector<cv::Point2d> target_armor_point_set;                // 
-
-    int index1;                                                                                                // ????
-    int fps;                                                                                                        // 帧率
-
-    std::vector<int> object_num;                                                          // 历史目标数量
-    cv::Ptr<cv::ml::SVM> svm;
-    int blue_color_threshold;
-    int red_color_threshold;
-    int max_g_dConArea;
-    int min_g_dConArea;
+    std::vector<int> object_num;                                                  // 历史目标数量
+    cv::Ptr<cv::ml::SVM> svm;                                                     // svm相关（弃用）
+    int blue_color_threshold;                                                     // 蓝色通道二值图
+    int red_color_threshold;                                                      // 红色通道二值图
+    int max_g_dConArea;                                                           // 最大允许区域？
+    int min_g_dConArea;                                                           // 最小允许区域？
     float max_angle_abs;
     float max_center_y;
     float get_data_fps;
