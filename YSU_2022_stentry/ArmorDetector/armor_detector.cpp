@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-#define DEBUG 1
+// #define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -128,7 +128,7 @@ void ArmorDetector::ScreenArmor(){
     {if(match_armors_.size()<*it)i++;}
     if(i>wu_cha_yun_xu*record_history_num) match_armors_.emplace_back(*record_history_arr.end()); // 短暂的丢失目标仍然打击
 
-    if(match_armors_.size()>0)//如果当前帧没有检测到目标
+    if(match_armors_.size()>0)//如果当前帧有检测到目标
     {
         if(match_armors_.size()!=1)//如果当前帧检测到目标不唯一，则根据多目标优先算法进行排序。
         {
@@ -177,12 +177,11 @@ void ArmorDetector::ScreenArmor(){
         }
 
         int id=0;// 获取到最好的那个
-        Point2f vertices[4];
 
-        for(int i = 0;i < 4;i++) vertices[i] = match_armors_[id].points[i];
+        auto vertices = match_armors_[id].points;
 
         while(1){
-            sort(vertices, vertices + 4, [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
+            sort(vertices.begin(), vertices.end(), [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
             if (vertices[0].y < vertices[1].y){
                 lu = vertices[0];
                 ld = vertices[1];
@@ -202,7 +201,6 @@ void ArmorDetector::ScreenArmor(){
 
             PerspectiveTransformation();//透视变换
 
-
 #ifdef DEBUG
             line(src_image_,lu,ld,Scalar(255,255,255),3);
             line(src_image_,ld,rd,Scalar(255,255,255),3);
@@ -216,7 +214,7 @@ void ArmorDetector::ScreenArmor(){
             // 空，但是没找到解决方案。
             if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1){//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
                 if((1+id)>=match_armors_.size())break;
-                else match_armors_[++id].rect.points(vertices);
+                else match_armors_[++id].points = vertices;
             }else{
                 break;
             }
