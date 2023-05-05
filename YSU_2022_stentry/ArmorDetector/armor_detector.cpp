@@ -13,7 +13,7 @@ float ArmorDetector::score_of_hero=1;
 float ArmorDetector::score_of_area=1;
 float ArmorDetector::score_of_last=1;
 
-vector<cv::RotatedRect> ArmorDetector::record_history_arr;
+vector<Rect_VectorPoint> ArmorDetector::record_history_arr;
 
 
 float get_angle(const cv::Point2f &a,const cv::Point2f &b)
