@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-// #define DEBUG 1
+#define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -212,7 +212,7 @@ void ArmorDetector::ScreenArmor(){
 #endif
           //float temp=p_svm->getNum(warpPerspective_dst)-2;
           //短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
-       // 空，但是没找到解决方案。
+          // 空，但是没找到解决方案。
           if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1)
             {//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
                 if((1+id)>=match_armors_.size())break;
@@ -299,7 +299,6 @@ vector<Point2d>& ArmorDetector::DetectObjectArmor(){
     Yolov2Res();                   // 调用yolo模型
     ScreenArmor();                 // 使用原来的装甲板筛选代码
     ClearAll();                    // 清除历史工作数据
-
     return target_armor_point_set; // 返回中心点的信息
 }
 
