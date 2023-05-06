@@ -216,7 +216,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence > 0.38) {
+        if(confidence >= 0.75) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
@@ -253,7 +253,6 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 //            if(box_color == 10){ // red not
 //                continue;
 //            }
-            if(class_p  * confidence < 0.35) continue;
 
             #ifdef DEBUG
             cv::circle(this->m_src_image, cv::Point(x_1, y_1), 3, cv::Scalar(0, 255, 0), 2);

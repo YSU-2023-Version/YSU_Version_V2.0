@@ -221,8 +221,6 @@ void Forecast::Init()
           while(record_history.size()>record_history_size){record_history.erase(record_history.begin());}
       }
 
-
-
       cout<<"                          record_history "<<record_history.size()<<endl;
       if(record_history.size()>=3)//记录数量达到观测需要再进行预测
       {
@@ -259,13 +257,8 @@ void Forecast::Init()
         }
 
 
-
-
-
 //        result_center=Kalman_filter(&KF,result_center );
 //zzrtest
-
-
 
               //result_center=kalman.Kalman_filter(result_center );
             speed=kalman_v.Kalman_filter(speed);

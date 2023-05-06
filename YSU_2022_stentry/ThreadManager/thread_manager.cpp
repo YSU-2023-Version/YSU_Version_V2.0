@@ -58,7 +58,6 @@ void ThreadManager::Consume(){
             std::unique_lock <std::mutex> lock(mutex);
             condition.wait(lock);
         }
-        cout<<"1\n";
         p_armor_detector_ -> LoadImage(buffer[j]);
  //       p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(   p_armor_detector_ -> DetectObjectArmor()  )   );
         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );

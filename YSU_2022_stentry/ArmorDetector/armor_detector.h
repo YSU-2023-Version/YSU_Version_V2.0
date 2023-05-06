@@ -51,7 +51,7 @@ private:
     cv::Point2f Perspective_Transformation_dst[4];                                // ????
     cv::Point2f lu, ld, ru, rd;                                                   // 结果的四个点坐标
 
-    std::vector<Rect_VectorPoint> match_armors_;                                  // 匹配到的装甲板，结构体中有rect和points，points是原始四点模型结果
+    std::vector<cv::RotatedRect> match_armors_;                                  // 匹配到的装甲板，结构体中有rect和points，points是原始四点模型结果
     std::vector<cv::Point2d> target_armor_point_set;                              // 四点（具体用于?）
 
     int index1;                                                                   // ????
@@ -97,7 +97,7 @@ private:
 
     static int record_history_num;
     float wu_cha_yun_xu;
-    static vector<Rect_VectorPoint> record_history_arr;
+    static vector<cv::RotatedRect> record_history_arr;
     vector<int> record_history_arr_num;
 
     float Kalman_Q,Kalman_R;
