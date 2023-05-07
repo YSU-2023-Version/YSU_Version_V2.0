@@ -32,9 +32,9 @@ void AngleSolver::InitAngle()
        rVec = cv::Mat::zeros(3,1,CV_64FC1);
        tVec = cv::Mat::zeros(3,1,CV_64FC1);
 }
-double * AngleSolver::SolveAngle(vector<Point2d>& object_armor_points_)
+double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
 {
-    if(!(object_armor_points_[0]==Point2d(0,0)&&object_armor_points_[1]==Point2d(0,0)&&object_armor_points_[2]==Point2d(0,0)&&object_armor_points_[3]==Point2d(0,0)))
+    if(!(object_armor_points_[0]==Point2f(0,0)&&object_armor_points_[1]==Point2f(0,0)&&object_armor_points_[2]==Point2f(0,0)&&object_armor_points_[3]==Point2f(0,0)))
     {
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
     _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;

@@ -13,7 +13,7 @@ float ArmorDetector::score_of_hero=1;
 float ArmorDetector::score_of_area=1;
 float ArmorDetector::score_of_last=1;
 
-vector<cv::RotatedRect> ArmorDetector::record_history_arr;
+vector<DetectRect> ArmorDetector::record_history_arr;
 
 
 float get_angle(const cv::Point2f &a,const cv::Point2f &b)
@@ -116,11 +116,12 @@ void ArmorDetector::LoadImage(cv::Mat &frame)
  */
 void ArmorDetector::ScreenArmor(){
 #ifdef DEBUG
-    cout<<"match_armors_.size():"<<match_armors_.size()<<endl;
+    std::cout << "match_armors_.size():" << match_armors_.size() << std::endl;
 #endif
 
     record_history_arr_num.emplace_back(match_armors_.size());//tuxiangzhong zhenshi jiance daode zhuangjiaban shuliang
     while(record_history_arr_num.size()>record_history_num)record_history_arr_num.erase(record_history_arr_num.begin());
+
 
     //de-装甲板闪烁。如果当前帧比上record_history_num帧中的wu_cha_yun_xu的装甲板数量少，则将上一帧结果加入当前帧
     int i=0;//
@@ -128,107 +129,95 @@ void ArmorDetector::ScreenArmor(){
     {if(match_armors_.size()<*it)i++;}
     if(i>wu_cha_yun_xu*record_history_num)match_armors_.emplace_back(*record_history_arr.end());//duanzan de diushi mu biao rengran jida
 
-    if(match_armors_.size()>0)//如果当前帧没有检测到目标
-    {
-        if(match_armors_.size()!=1)//如果当前帧检测到目标不唯一，则根据多目标优先算法进行排序。
-        {
-           if(hero_priority==0){//多因素混合打分
-                sort(match_armors_.begin(),match_armors_.end(),[](const RotatedRect & rect1, const RotatedRect & rect2) {
-                  float score1=1,score2=1;
-                  //da zjb::score+=
-                  float ratio1=(rect1.size.width/rect1.size.height);
-                  float ratio2=(rect2.size.width/rect2.size.height);
-                  if(ratio1<hero_zjb_ratio_max&&ratio1>hero_zjb_ratio_min)score1+=score_of_hero;
-                  if(ratio2<hero_zjb_ratio_max&&ratio2>hero_zjb_ratio_min)score2+=score_of_hero;
+    if(match_armors_.size() > 0){ // 如果当前帧有检测到目标
+            if(match_armors_.size()!=1) // 如果当前帧检测到目标不唯一，则根据多目标优先算法进行排序。
+            {
+               if(hero_priority==0){ // 多因素混合打分
+                    sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2) {
+                      float score1 = 1,score2 = 1;
+                      float ratio1 = (rect1.rect.width / rect1.rect.height);
+                      float ratio2 = (rect2.rect.width / rect2.rect.height);
+                      if(ratio1 < hero_zjb_ratio_max && ratio1 > hero_zjb_ratio_min)score1 += score_of_hero;
+                      if(ratio2 < hero_zjb_ratio_max && ratio2 > hero_zjb_ratio_min)score2 += score_of_hero;
 
-                  rect1.size.area()>rect2.size.area()?score1+=score_of_area:score2+score_of_area;
-                  (get_dis((record_history_arr.end()-1)->center,rect1.center)<get_dis((record_history_arr.end()-1)->center,rect2.center))?score1+=score_of_last:score2+=score_of_last;
+                      rect1.area > rect2.area ? score1 += score_of_area : score2+score_of_area;
+                      (get_dis((record_history_arr.end()-1)->cen_p,rect1.cen_p)<get_dis((record_history_arr.end()-1)->cen_p,rect2.cen_p))?score1+=score_of_last:score2+=score_of_last;
 
-                  return score1>score2;
-                });
-           }else if(hero_priority==1){//优先历史帧
-                sort(match_armors_.begin(),match_armors_.end(),[](const RotatedRect & rect1, const RotatedRect & rect2)
-                {
-                    int score1=0,score2=0;
-                    for(int tmp=record_history_arr.size();tmp>0;tmp--)
-                    {(get_dis(record_history_arr[tmp-1].center,rect1.center))<(get_dis(record_history_arr[tmp-1].center,rect2.center))?score1++:score2++;}
-                    return score1>score2;
-                });
-           }else if(hero_priority==2){//第一优先大装甲板，再二优先历史帧
-                sort(match_armors_.begin(),match_armors_.end(),[](const RotatedRect & rect1, const RotatedRect & rect2)
-               {
-                  float ratio1=rect1.size.width/rect1.size.height;
-                  float ratio2=rect2.size.width/rect2.size.height;
-                  if(ratio1>4.2)return false;
-                  if(ratio2>4.2)return true;
-                  if(ratio1>3.0&&ratio2<3.0)return true;
-                  if(ratio2>3.0&&ratio1<3.0)return false;
+                      return score1 > score2;
+                    });
+               }else if(hero_priority == 1){ // 优先历史帧
+                    sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2)
+                    {
+                        int score1 = 0, score2 = 0;
+                        for(int tmp = record_history_arr.size();tmp > 0;tmp --)
+                        {(get_dis(record_history_arr[tmp-1].cen_p,rect1.cen_p)) < (get_dis(record_history_arr[tmp-1].cen_p,rect2.cen_p))?score1++:score2++;}
+                        return score1 > score2;
+                    });
+               }else if(hero_priority == 2){ // 第一优先大装甲板，再二优先历史帧
+                    sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2)
+                   {
+                      float ratio1 = rect1.rect.width / rect1.rect.height;
+                      float ratio2 = rect2.rect.width / rect2.rect.height;
+                      if(ratio1 > 4.2)return false;
+                      if(ratio2 > 4.2)return true;
+                      if(ratio1 > 3.0 && ratio2 < 3.0)return true;
+                      if(ratio2 > 3.0 && ratio1 < 3.0)return false;
 
-                  int score1=0,score2=0;
-                  for(int tmp=record_history_arr.size();tmp>0;tmp--)
-                  {(get_dis(record_history_arr[tmp-1].center,rect1.center))<(get_dis(record_history_arr[tmp-1].center,rect2.center))?score1++:score2++;}
-                  return score1>score2;
-               });
-           }else{//优先最大面积
-                sort(match_armors_.begin(),match_armors_.end(),[](const RotatedRect & rect1, const RotatedRect & rect2) {
-                   return rect1.size.area() > rect2.size.area();
-               });
-           }
+                      int score1=0,score2=0;
+                      for(int tmp=record_history_arr.size();tmp > 0;tmp --)
+                      {(get_dis(record_history_arr[tmp-1].cen_p,rect1.cen_p))<(get_dis(record_history_arr[tmp-1].cen_p,rect2.cen_p))?score1++:score2++;}
+                      return score1>score2;
+                   });
+               }else{ // 优先最大面积
+                    sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2) {
+                       return rect1.area > rect2.area;
+                   });
+               }
         }
 
-        int id=0;
-        Point2f vertices[4];
-        match_armors_[id].points(vertices);//?1
 
-        while(1){
-            sort(vertices, vertices + 4, [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
-            if (vertices[0].y < vertices[1].y){
-                lu = vertices[0];
-                ld = vertices[1];
-            }else{
-                lu = vertices[1];
-                ld = vertices[0];
-            }
-
-            if (vertices[2].y < vertices[3].y)	{
-                ru = vertices[2];
-                rd = vertices[3];
-            }
-            else {
-                ru = vertices[3];
-                rd = vertices[2];
-            }
-
-            PerspectiveTransformation();//透视变换
-
+        const int id = 0;
+        // 由于换成了vector容器，所以必须先给一个初始值
+        std::vector<cv::Point2f> vertices = {cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0)};
+        vertices = match_armors_[id].points;
+        sort(vertices.begin(), vertices.end(), [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
+        std::cout << vertices.size() << std::endl;
+        if (vertices[0].y < vertices[1].y){
+            lu = vertices[0];
+            ld = vertices[1];
+        } else {
+            lu = vertices[1];
+            ld = vertices[0];
+        }
+        if (vertices[2].y < vertices[3].y)	{
+            ru = vertices[2];
+            rd = vertices[3];
+        } else {
+            ru = vertices[3];
+            rd = vertices[2];
+        }
+        PerspectiveTransformation();//透视变换
 
 #ifdef DEBUG
         line(src_image_,lu,ld,Scalar(255,255,255),3);
         line(src_image_,ld,rd,Scalar(255,255,255),3);
         line(src_image_,rd,ru,Scalar(255,255,255),3);
         line(src_image_,ru,lu,Scalar(255,255,255),3);
-        imshow("src",src_image_);
-        waitKey(1);
+        cv::Point origin;
+        origin.x = match_armors_[id].min_point.x;
+        origin.y = match_armors_[id].min_point.y;
+        cv::putText(src_image_, match_armors_[id].class_name, origin, cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(0, 255, 255), 1, 2, 0);
+
+        cv::imshow("src",src_image_);
+        cv::waitKey(1);
 #endif
-          //float temp=p_svm->getNum(warpPerspective_dst)-2;
-          //短时间内调用两次会有内存报错，非常奇怪，怀疑是寄存器未清
-          // 空，但是没找到解决方案。
-          if(fabs(p_svm->getNum(warpPerspective_dst)-2)<0.1)
-            {//如果当前锁定装甲板为2（工程），则重新判断下一装甲板（如果存在多装甲板）
-                if((1+id)>=match_armors_.size())break;
-                else match_armors_[++id].points(vertices);
-            }else
-            {
-                break;
-            }
-        }
 
 
-//        for(int i=0;i<4;i++)
-//       {
-//           vertices[i].x=p_kal[2*i]->KalmanFilter(vertices[i].x);
-//           vertices[i].y=p_kal[2*i+1]->KalmanFilter(vertices[i].y);
-//       }
+    //        for(int i=0;i<4;i++)
+    //       {
+    //           vertices[i].x=p_kal[2*i]->KalmanFilter(vertices[i].x);
+    //           vertices[i].y=p_kal[2*i+1]->KalmanFilter(vertices[i].y);
+    //       }
         //记录输出结果，用于历史帧判断
         record_history_arr.emplace_back(match_armors_[id]);
         while(record_history_arr.size()>record_history_num)record_history_arr.erase(record_history_arr.begin());
@@ -246,6 +235,7 @@ void ArmorDetector::ScreenArmor(){
         target_armor_point_set.push_back(Point2d(0,0));
         target_armor_point_set.push_back(Point2d(0,0));
         target_armor_point_set.push_back(Point2d(0,0));
+
     }
 }
 
@@ -279,11 +269,7 @@ void ArmorDetector::Show(){
  * @details yolov5识别器，处理完成之后的结果将存到match_armors_的vector中
  */
 void ArmorDetector::Yolov2Res(){
-    this->detect_res_armor_ = this->yolov5_detector_->detect_yolov5(src_image_copy); // 模型推理到结果
-    for(auto item : this->detect_res_armor_){ // 遍历识别到的结果
-        cv::RotatedRect r_rect_ = cv::minAreaRect(item.points);
-        this->match_armors_.push_back(r_rect_); // 将rect转换成RotatedRect
-    }
+    match_armors_ = this->yolov5_detector_->detect_yolov5(src_image_copy); // 模型推理到结果
 }
 
 
@@ -294,11 +280,15 @@ void ArmorDetector::Yolov2Res(){
  * @param void
  * @brief 在初始化之后，每一次加载图片之后就执行一次识别过程，返回最终中心点坐标
 */
-vector<Point2d>& ArmorDetector::DetectObjectArmor(){
+vector<Point2f>& ArmorDetector::DetectObjectArmor(){
     // old detector 老视觉识别已经弃用，现在用的深度学习识别
+    cout << "111" << endl;
     Yolov2Res();                   // 调用yolo模型
+    cout << "222" << endl;
     ScreenArmor();                 // 使用原来的装甲板筛选代码
+    cout << "333" << endl;
     ClearAll();                    // 清除历史工作数据
+    cout << "444" << endl;
     return target_armor_point_set; // 返回中心点的信息
 }
 
@@ -348,16 +338,11 @@ void ArmorDetector::PerspectiveTransformation(){
     warpPerspective_mat = getPerspectiveTransform(Perspective_Transformation_src, Perspective_Transformation_dst);
 #ifdef DEBUG
     warpPerspective(src_image_copy, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
-//    circle(src_image_, Perspective_Transformation_src[0], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
-//    circle(src_image_, Perspective_Transformation_src[1], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
-//    circle(src_image_, Perspective_Transformation_src[2], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
-//    circle(src_image_, Perspective_Transformation_src[3], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
+    circle(src_image_, Perspective_Transformation_src[0], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
+    circle(src_image_, Perspective_Transformation_src[1], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
+    circle(src_image_, Perspective_Transformation_src[2], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
+    circle(src_image_, Perspective_Transformation_src[3], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
 
      warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
 #endif
 }
-
-
-
-
-

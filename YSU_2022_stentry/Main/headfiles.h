@@ -21,6 +21,7 @@
 #include <chrono>
 #include <deque>
 #include <queue>
+#include <exception>
 
 //1-识别红色 0-识别蓝色
 #define ENEMY_COLOR_IS_RED 0

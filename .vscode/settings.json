@@ -71,5 +71,6 @@
         "xtr1common": "cpp",
         "coroutine": "cpp",
         "resumable": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

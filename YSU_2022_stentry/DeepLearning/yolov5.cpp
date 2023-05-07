@@ -16,7 +16,7 @@ float sigmoid_function(float a)
 }
 
 Yolov5::Yolov5(){
-    this->m_xml_path = "../model/best.xml";
+    this->m_xml_path = "../model/best.xml"; // 默认模型路径一般不用，在初始化中被覆盖
     this->m_bin_path = "../model/best.bin";
 }
 
@@ -35,7 +35,15 @@ void Yolov5::init_yolov5_detector(){
     this->read_network();
     this->threshold = 0.6;
     this->color_num = 2;
-    this->class_num = 36;
+    this->class_num = 8;
+    this->class_names.push_back("sentry");
+    this->class_names.push_back("hero_1");
+    this->class_names.push_back("engineer_2");
+    this->class_names.push_back("infantry_3");
+    this->class_names.push_back("infantry_4");
+    this->class_names.push_back("infantry_5");
+    this->class_names.push_back("front");
+    this->class_names.push_back("base");
 
     printf("---------------------done---------------------\n");
 }
@@ -188,9 +196,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 
     // 处理输出结果
     // 遍历检测到的框
-    int sum = 0;
     int dims = output_dims[2]; // weidu
-    int num_of_classes = dims - 8; // get num of classes
 
     std::vector<DetectRect> rects;
 
@@ -269,19 +275,20 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             temp_rect.min_point = cv::Point(min_x, min_y);
             temp_rect.max_point = cv::Point(max_x, max_y);
             temp_rect.rect = cv::Rect(temp_rect.min_point, temp_rect.max_point);
-            temp_rect.points.push_back(cv::Point(x_1, y_1));
-            temp_rect.points.push_back(cv::Point(x_2, y_2));
-            temp_rect.points.push_back(cv::Point(x_3, y_3));
-            temp_rect.points.push_back(cv::Point(x_4, y_4));
-            temp_rect.cen_p = cv::Point((x_1 + x_2 + x_3 + x_4) / 4.0, (y_1 + y_2 + y_3 + y_4) / 4.0);
+            temp_rect.points.push_back(cv::Point2f(x_1, y_1));
+            temp_rect.points.push_back(cv::Point2f(x_2, y_2));
+            temp_rect.points.push_back(cv::Point2f(x_3, y_3));
+            temp_rect.points.push_back(cv::Point2f(x_4, y_4));
+            temp_rect.cen_p = cv::Point2f((x_1 + x_2 + x_3 + x_4) / 4.0, (y_1 + y_2 + y_3 + y_4) / 4.0);
             temp_rect.class_id = box_class;
             temp_rect.class_p = class_p;
             temp_rect.color_id = box_color;
             temp_rect.color_p = color_p;
+            temp_rect.area = temp_rect.rect.area();
+            temp_rect.class_name = temp_rect.color_id == 9 ? "blue_" : "red_" + this->class_names[temp_rect.class_id - 12];
             #ifdef DEBUG
-            std::cout << "confidence: " << confidence << std::endl;
+//            std::cout << "confidence: " << confidence << std::endl;
             // circle(src_, temp_rect.cen_p, 4, cv::Scalar(255, 0, 0), 4);
-            sum ++;
             #endif // DEBUG 调试此时的src_image，查看角点的情况
 
             // add to rects
@@ -298,7 +305,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         // IOU
         res_rects.push_back(rects[0]); // push the best to the res_vector
         bool flag = true;
-        for(int i = 1;i < rects.size();i++){
+        for(unsigned int i = 1;i < rects.size();i++){
             for(auto item_max_rect : res_rects){
                 cv::Rect max_p_rect = item_max_rect.rect; // max p rect
                 cv::Rect item_p_rect = rects[i].rect; // item p rect
@@ -325,11 +332,11 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         }
     }
 
-    #ifdef DEBUG
-    this->draw_res();
-    std::cout << "num: " << sum << std::endl;
-    cv::imshow("dst_image", m_src_image);
-    cv::waitKey(1);
+    #ifdef DEBUG  // 单独开发深度学习模块时用的，已经弃用
+//    this->draw_res();
+//    std::cout << "num: " << sum << std::endl;
+//    cv::imshow("dst_image", m_src_image);
+//    cv::waitKey(1);
     #endif // DEBUG 调试最终得到的点
 
     return res_rects;

@@ -10,7 +10,7 @@ class AngleSolver
 public:
     AngleSolver();
     void InitAngle();
-    double * SolveAngle(vector<cv::Point2d>& object_armor_points_);
+    double * SolveAngle(vector<cv::Point2f>& object_armor_points_);
     int shoot_get();
 
     vector<cv::Point3f> obj;

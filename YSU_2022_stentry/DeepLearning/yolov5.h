@@ -8,7 +8,7 @@
  * 			0~7：装甲板四个点位置； 8：物体置信度； 9-11：颜色置信度； 12-20:9个类别；
  * 		类别分布：
  * 			idx            name
- * 			12：		   哨兵
+ * 			12：		       哨兵
  * 			13：           英雄
  * 			14：           工程
  * 			15：           3号步兵
@@ -25,7 +25,7 @@
 
 #include "Main/headfiles.h"
 
-// #define DEBUG // 调试模式
+#define DEBUG // 调试模式
 
 using namespace std;
 using namespace cv;
@@ -45,6 +45,8 @@ struct DetectRect{
     float class_p;
     int color_id;
     float color_p;
+    int area;
+    std::string class_name;
 };
 
 class Yolov5{
@@ -59,7 +61,7 @@ class Yolov5{
     std::string m_xml_path;                                      // 模型xml文件的路径
     std::string m_bin_path;                                      // 模型bin文件的路径
 
-    InferenceEngine::Core m_ie;
+    InferenceEngine::Core m_ie;                                  // 用于设置的内核
     InferenceEngine::InputsDataMap m_input_info;                 // 输入信息
     InferenceEngine::OutputsDataMap m_output_info;               // 输出信息
     InferenceEngine::ExecutableNetwork m_executable_network;     // 训练好了的模型
@@ -75,6 +77,8 @@ class Yolov5{
     std::vector<DetectRect> res_rects;                           // 结果Rect的存储容器
 
     std::string * class_idx_map;                                 // 类别名称对应的索引值
+
+    std::vector<std::string> class_names;                        // 类别名称索引数组
     public:
 
     Yolov5();                           //
