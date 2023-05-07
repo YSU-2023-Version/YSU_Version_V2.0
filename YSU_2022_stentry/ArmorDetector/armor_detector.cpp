@@ -282,13 +282,9 @@ void ArmorDetector::Yolov2Res(){
 */
 vector<Point2f>& ArmorDetector::DetectObjectArmor(){
     // old detector 老视觉识别已经弃用，现在用的深度学习识别
-    cout << "111" << endl;
     Yolov2Res();                   // 调用yolo模型
-    cout << "222" << endl;
     ScreenArmor();                 // 使用原来的装甲板筛选代码
-    cout << "333" << endl;
     ClearAll();                    // 清除历史工作数据
-    cout << "444" << endl;
     return target_armor_point_set; // 返回中心点的信息
 }
 

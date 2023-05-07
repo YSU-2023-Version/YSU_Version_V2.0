@@ -222,7 +222,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence >= 0.75) {
+        if(confidence >= 0.66) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
