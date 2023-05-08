@@ -5,39 +5,20 @@
 */
 #include "ArmorTrack/armor_track.h"
 
-/**
- * @brief 构造一个ArmorTracker对象
- * 
- * @param src Armor对象   src_timestamp 时间戳
- */
-ArmorTracker::ArmorTracker(Armor src, int src_timestamp)
-{
-    last_armor = src;
-    last_timestamp = src_timestamp;
-    key = src.key;
-    is_initialized = false;
-    hit_score = 0;
-    history_info.push_back(src);
+ArmorTracker::ArmorTracker(){
+    max_len = 10;
 }
 
-/**
- * @brief 更新ArmorTracker对象
- * 
- * @param src Armor对象   src_timestamp 时间戳
- */
-void ArmorTracker::update(Armor new_armor, int new_timestamp) {
-    if (history_info.size() <= max_history_len){ // 如果size是小于最大长度，直接push
-        history_info.push_back(new_armor);
-    } else { // 如果是大于最大允许长度就先退队，再插入
-        history_info.pop_front();
-        history_info.push_back(new_armor);
+ArmorTracker::ArmorTracker(int max_len = 10){ // 先默认10
+    this->max_len = max_len;
+}
+
+void ArmorTracker::update(){
+    for(auto item_rects : ){
+        
     }
+}
 
-    is_initialized = true;
-    prev_armor = last_armor;
-    prev_timestamp = last_timestamp;
-    last_armor = new_armor;
-    last_timestamp = new_timestamp;
+void ArmorTracker::clear_work(){
 
-    // calcTargetScore(); // 后续再用
 }

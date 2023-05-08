@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "command": "g++",
+    "args": [
+        "-g", 
+        "-std=c++11", 
+        "${file}", 
+        "-o", 
+        "${fileBasenameNoExtension}.o",  
+        "-I",  "D:\\OpenCV4.4.0\\build\\x64\\mingw\\install\\include",
+        "-I",  "D:\\OpenCV4.4.0\\build\\x64\\mingw\\install\\include\\opencv2",
+    
+        "-L", "D:\\OpenCV4.4.0\\build\\x64\\mingw\\lib",
+        "-l", "libopencv_calib3d440",
+        "-l", "libopencv_core440",
+        "-l", "libopencv_dnn440",
+        "-l", "libopencv_features2d440",
+        "-l", "libopencv_flann440",
+        "-l", "libopencv_gapi440",
+        "-l", "libopencv_highgui440",
+        "-l", "libopencv_imgcodecs440",
+        "-l", "libopencv_imgproc440",
+        "-l", "libopencv_ml440",
+        "-l", "libopencv_objdetect440",
+        "-l", "libopencv_photo440",
+        "-l", "libopencv_stitching440",
+        "-l", "libopencv_video440",
+        "-l", "libopencv_videoio440"
+        
+  
+    ],// 编译命令参数
+    "problemMatcher":{
+        "owner": "cpp",
+        "fileLocation":[
+            "relative",
+            "${workspaceFolder}"
+        ],
+        "pattern":[
+            {
+                "regexp": "^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$",
+                "file": 1,
+                "location": 2,
+                "message": 3
+            }
+        ]
+    },
+    "group": {
+        "kind": "build",
+        "isDefault": true
+    }
+    
+ }

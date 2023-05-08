@@ -24,6 +24,7 @@
 
 
 #include "Main/headfiles.h"
+#include "Timer/Timer.h"
 
 #define DEBUG // 调试模式
 
@@ -34,21 +35,21 @@ using namespace InferenceEngine;
 
 
 // yolov5_detector
-
+// 共用结构体，可以一起改
 struct DetectRect{
-    cv::Point min_point;
-    cv::Point max_point;
-    cv::Rect rect;
-    std::vector<cv::Point2f> points;
-    cv::Point cen_p;
-    int class_id;
-    float class_p;
-    int color_id;
-    float color_p;
-    int area;
-    std::string class_name;
+    cv::Point min_point;                       // 右上角点
+    cv::Point max_point;                       // 左上角点
+    cv::Rect rect;                             // 正框（方向是竖直的）
+    std::vector<cv::Point2f> points;           // 点的容器
+    cv::Point cen_p;                           // 中心点坐标
+    int class_id;                              // 类别ID
+    float class_p;                             // 最认可类别概率
+    int color_id;                              // 颜色ID
+    float color_p;                             // 最认可颜色概率
+    int area;                                  // 面积
+    std::string class_name;                    // 类别名称
+    System time;                               // 时间戳
 };
-
 class Yolov5{
     private:
 

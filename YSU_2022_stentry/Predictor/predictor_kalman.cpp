@@ -32,7 +32,6 @@ cv::Point2f get_points_center(std::vector<cv::Point2f> points){
                     ((pts[3].y-pts[1].y)/(pts[3].x-pts[1].x)-(pts[2].y-pts[0].y)/(pts[2].x-pts[0].x));
         center.y = (pts[2].y-pts[0].y)/(pts[2].x-pts[0].x)*(center.x-pts[0].x)+pts[0].y;
     }
-
     return center;
 }
 

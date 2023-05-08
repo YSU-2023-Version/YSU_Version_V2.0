@@ -23,9 +23,6 @@
 #include <queue>
 #include <exception>
 
-//1-识别红色 0-识别蓝色
-#define ENEMY_COLOR_IS_RED 0
-
 using namespace std;
 using namespace cv;
 

@@ -98,7 +98,7 @@ bool Yolov5::is_allready()
         return false;
 }
 
-
+// 清除历史工作
 void Yolov5::clear_work(){
     this->res_rects.clear();
 }
@@ -285,7 +285,8 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             temp_rect.color_id = box_color;
             temp_rect.color_p = color_p;
             temp_rect.area = temp_rect.rect.area();
-            temp_rect.class_name = temp_rect.color_id == 9 ? "blue_" : "red_" + this->class_names[temp_rect.class_id - 12];
+            temp_rect.class_name = temp_rect.color_id == 9 ? "blue_" : temp_rect.color_id == 10 ? "red_" : "dead_" + this->class_names[temp_rect.class_id - 12];
+            temp_rect.time = getSystime(); // 获取时间戳
             #ifdef DEBUG
 //            std::cout << "confidence: " << confidence << std::endl;
             // circle(src_, temp_rect.cen_p, 4, cv::Scalar(255, 0, 0), 4);
