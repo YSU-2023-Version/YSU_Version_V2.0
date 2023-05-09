@@ -27,21 +27,26 @@ void ThreadManager::Init(){
 void ThreadManager::Produce(){
     while(1)
     {
-//        auto t1 = std::chrono::high_resolution_clock::now();
+        auto t1 = std::chrono::high_resolution_clock::now();
 
         buffer[i]=p_camera_manager_ -> ReadImage();
         getSystime(sys_time[i]);
         //cout << "i : " << i << " j: " << j;
-
-
         condition.notify_one(); //通知wait()函数，解除阻止
-//        auto t2 = std::chrono::high_resolution_clock::now();
         if( (++i) % 30 == 0 )
         {
             i = 0;
         }
-
-//           std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << std::endl;
+        auto t2 = std::chrono::high_resolution_clock::now();
+        // 稳定帧率每秒100帧
+        double time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        auto start_time = std::chrono::steady_clock::now();
+        auto end_time = start_time + std::chrono::milliseconds(time);
+        // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
+        while (std::chrono::steady_clock::now() < end_time) {
+            std::this_thread::yield();
+        }
+        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
@@ -49,22 +54,16 @@ void ThreadManager::Produce(){
 
 void ThreadManager::Consume(){
     cout<<"consume is run"<<endl;
-    while(1)//图像处理，可根据实际需求在其中添加，仅需保证consum处理速度>communicate即可。
+    while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
-        auto s1 = std::chrono::high_resolution_clock::now();
-        if(j==i)
+        if(j == i)
         {
             std::unique_lock <std::mutex> lock(mutex);
             condition.wait(lock);
         }
-        auto e1 = std::chrono::high_resolution_clock::now();
-        std::cout << "被锁时间：" << ((static_cast<std::chrono::duration<double, std::milli>>(s1 - e1)).count()) << std::endl;
-        auto s2 = std::chrono::high_resolution_clock::now();
         p_armor_detector_ -> LoadImage(buffer[j]);
         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );        
-        auto e2 = std::chrono::high_resolution_clock::now();
-        std::cout << "识别时间：" << ((static_cast<std::chrono::duration<double, std::milli>>(s2 - e2)).count()) << std::endl;
         //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
@@ -77,7 +76,7 @@ void ThreadManager::Consume(){
             j = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
-//        std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+        std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
         std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
 
