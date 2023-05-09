@@ -134,16 +134,16 @@ void ArmorDetector::ScreenArmor(){
             {
                if(hero_priority==0){ // 多因素混合打分
                     sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2) {
-                      float score1 = 1,score2 = 1;
-                      float ratio1 = (rect1.rect.width / rect1.rect.height);
-                      float ratio2 = (rect2.rect.width / rect2.rect.height);
-                      if(ratio1 < hero_zjb_ratio_max && ratio1 > hero_zjb_ratio_min)score1 += score_of_hero;
-                      if(ratio2 < hero_zjb_ratio_max && ratio2 > hero_zjb_ratio_min)score2 += score_of_hero;
+                        float score1 = 1,score2 = 1;
+                        float ratio1 = (rect1.rect.width / rect1.rect.height);
+                        float ratio2 = (rect2.rect.width / rect2.rect.height);
+                        if(ratio1 < hero_zjb_ratio_max && ratio1 > hero_zjb_ratio_min)score1 += score_of_hero;
+                        if(ratio2 < hero_zjb_ratio_max && ratio2 > hero_zjb_ratio_min)score2 += score_of_hero;
 
-                      rect1.area > rect2.area ? score1 += score_of_area : score2+score_of_area;
-                      (get_dis((record_history_arr.end()-1)->cen_p,rect1.cen_p)<get_dis((record_history_arr.end()-1)->cen_p,rect2.cen_p))?score1+=score_of_last:score2+=score_of_last;
+                        rect1.area > rect2.area ? score1 += score_of_area : score2+score_of_area;
+                        (get_dis((record_history_arr.end()-1)->cen_p,rect1.cen_p)<get_dis((record_history_arr.end()-1)->cen_p,rect2.cen_p))?score1+=score_of_last:score2+=score_of_last;
 
-                      return score1 > score2;
+                        return score1 > score2;
                     });
                }else if(hero_priority == 1){ // 优先历史帧
                     sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2)
@@ -155,13 +155,13 @@ void ArmorDetector::ScreenArmor(){
                     });
                }else if(hero_priority == 2){ // 第一优先大装甲板，再二优先历史帧
                     sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2)
-                   {
-                      float ratio1 = rect1.rect.width / rect1.rect.height;
-                      float ratio2 = rect2.rect.width / rect2.rect.height;
-                      if(ratio1 > 4.2)return false;
-                      if(ratio2 > 4.2)return true;
-                      if(ratio1 > 3.0 && ratio2 < 3.0)return true;
-                      if(ratio2 > 3.0 && ratio1 < 3.0)return false;
+                    {
+                        float ratio1 = rect1.rect.width / rect1.rect.height;
+                        float ratio2 = rect2.rect.width / rect2.rect.height;
+                        if(ratio1 > 4.2)return false;
+                        if(ratio2 > 4.2)return true;
+                        if(ratio1 > 3.0 && ratio2 < 3.0)return true;
+                        if(ratio2 > 3.0 && ratio1 < 3.0)return false;
 
                       int score1=0,score2=0;
                       for(int tmp=record_history_arr.size();tmp > 0;tmp --)

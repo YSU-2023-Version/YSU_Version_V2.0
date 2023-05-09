@@ -14,7 +14,7 @@ ArmorTracker::ArmorTracker(int max_len = 10){ // 先默认10
 }
 
 void ArmorTracker::update(){
-    for(auto item_rects : ){
+    for(auto item_rects : history_detect_rects_){
         
     }
 }
