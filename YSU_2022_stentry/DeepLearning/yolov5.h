@@ -48,7 +48,7 @@ struct DetectRect{
     float color_p;                             // 最认可颜色概率
     int area;                                  // 面积
     std::string class_name;                    // 类别名称
-    System time;                               // 时间戳
+    Systime time;                               // 时间戳
 };
 class Yolov5{
     private:
@@ -82,7 +82,7 @@ class Yolov5{
     std::vector<std::string> class_names;                        // 类别名称索引数组
     public:
 
-    Yolov5();                           //
+    Yolov5();
     Yolov5(std::string xml_path, std::string bin_path, int input_weight, int input_height);
 
     void init_yolov5_detector();        // init detector class

@@ -286,7 +286,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             temp_rect.color_p = color_p;
             temp_rect.area = temp_rect.rect.area();
             temp_rect.class_name = temp_rect.color_id == 9 ? "blue_" : temp_rect.color_id == 10 ? "red_" : "dead_" + this->class_names[temp_rect.class_id - 12];
-            temp_rect.time = getSystime(); // 获取时间戳
+            getSystime(temp_rect.time); // 获取时间戳
             #ifdef DEBUG
 //            std::cout << "confidence: " << confidence << std::endl;
             // circle(src_, temp_rect.cen_p, 4, cv::Scalar(255, 0, 0), 4);

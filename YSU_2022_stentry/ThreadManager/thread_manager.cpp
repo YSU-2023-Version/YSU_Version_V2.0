@@ -4,7 +4,6 @@
 #include "CameraManager/camera_manager.h"
 #include "Communication/communication.h"
 #include "RuneDetector/rune_detector.h"
-
 ThreadManager::ThreadManager():
     p_armor_detector_(std::make_unique<ArmorDetector>()),
     p_forecast_(std::make_unique<Forecast>()),
@@ -60,13 +59,10 @@ void ThreadManager::Consume(){
         }
         p_armor_detector_ -> LoadImage(buffer[j]);
  //       p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(   p_armor_detector_ -> DetectObjectArmor()  )   );
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );        
         //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
-
         // std::promise<Point2f> shoot;
-
-
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
         //debug
         p_armor_detector_ -> Show();

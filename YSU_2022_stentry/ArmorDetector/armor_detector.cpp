@@ -163,19 +163,17 @@ void ArmorDetector::ScreenArmor(){
                         if(ratio1 > 3.0 && ratio2 < 3.0)return true;
                         if(ratio2 > 3.0 && ratio1 < 3.0)return false;
 
-                      int score1=0,score2=0;
-                      for(int tmp=record_history_arr.size();tmp > 0;tmp --)
-                      {(get_dis(record_history_arr[tmp-1].cen_p,rect1.cen_p))<(get_dis(record_history_arr[tmp-1].cen_p,rect2.cen_p))?score1++:score2++;}
-                      return score1>score2;
-                   });
+                        int score1=0,score2=0;
+                        for(int tmp=record_history_arr.size();tmp > 0;tmp --)
+                        {(get_dis(record_history_arr[tmp-1].cen_p,rect1.cen_p))<(get_dis(record_history_arr[tmp-1].cen_p,rect2.cen_p))?score1++:score2++;}
+                        return score1>score2;
+                    });
                }else{ // 优先最大面积
                     sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2) {
-                       return rect1.area > rect2.area;
-                   });
-               }
-        }
-
-
+                        return rect1.area > rect2.area;
+                    });
+                }
+            }
         const int id = 0;
         // 由于换成了vector容器，所以必须先给一个初始值
         std::vector<cv::Point2f> vertices = {cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0)};
@@ -339,6 +337,6 @@ void ArmorDetector::PerspectiveTransformation(){
     circle(src_image_, Perspective_Transformation_src[2], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
     circle(src_image_, Perspective_Transformation_src[3], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
 
-     warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
+    warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
 #endif
 }
