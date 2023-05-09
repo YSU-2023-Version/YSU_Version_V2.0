@@ -36,7 +36,7 @@ private:
     float x_pitch;
 
     std::shared_ptr<rmoss_projectile_motion::GafProjectileSolver> gaf_solver; // 重力补偿
-    std::shared_ptr<rmoss_projectile_motion::GimbalTransformTool> projectile_tansformoss_tool // 重力补偿
+    std::shared_ptr<rmoss_projectile_motion::GimbalTransformTool> projectile_tansformoss_tool; // 重力补偿
     
 };
 

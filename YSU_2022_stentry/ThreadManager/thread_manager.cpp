@@ -39,7 +39,7 @@ void ThreadManager::Produce(){
         }
         auto t2 = std::chrono::high_resolution_clock::now();
         // 稳定帧率每秒100帧
-        double time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
         // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
@@ -63,7 +63,7 @@ void ThreadManager::Consume(){
             condition.wait(lock);
         }
         p_armor_detector_ -> LoadImage(buffer[j]);
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );        
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
         //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;

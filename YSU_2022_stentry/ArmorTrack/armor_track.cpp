@@ -23,7 +23,6 @@ void ArmorTracker::update(){
     for(auto item_rects : history_detect_rects_){
         
     }
-    this->score_ = temp_score;
 }
 
 

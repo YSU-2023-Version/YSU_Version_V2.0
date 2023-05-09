@@ -1,5 +1,6 @@
 #include "GafSolver/gimbal_transform_tool.h"
 #include<iostream>
+#include<cmath>
 #include "GafSolver/projectile_solver_interface.h"
 using namespace std;
 namespace rmoss_projectile_motion
