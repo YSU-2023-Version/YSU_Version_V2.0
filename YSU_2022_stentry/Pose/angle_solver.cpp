@@ -1,6 +1,7 @@
 #include "Main/headfiles.h"
 #include "Pose/angle_solver.h"
 
+#define DEBUG // 打开调试模式，输出yam轴pitch轴误差
 
 AngleSolver::AngleSolver()
 {
