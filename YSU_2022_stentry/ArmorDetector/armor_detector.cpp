@@ -179,7 +179,6 @@ void ArmorDetector::ScreenArmor(){
         std::vector<cv::Point2f> vertices = {cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0)};
         vertices = match_armors_[id].points;
         sort(vertices.begin(), vertices.end(), [](const Point2f & p1, const Point2f & p2){return p1.x < p2.x; });
-        std::cout << vertices.size() << std::endl;
         if (vertices[0].y < vertices[1].y){
             lu = vertices[0];
             ld = vertices[1];
