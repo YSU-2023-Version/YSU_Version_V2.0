@@ -83,7 +83,7 @@ class Yolov5{
     std::vector<std::string> class_names;                        // 类别名称索引数组
     public:
 
-    Yolov5();                           //
+    Yolov5();
     Yolov5(std::string xml_path, std::string bin_path, int input_weight, int input_height);
 
     void init_yolov5_detector();        // init detector class

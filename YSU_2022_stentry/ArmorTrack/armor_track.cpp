@@ -20,11 +20,8 @@ void ArmorTracker::add_to_tracker(DetectRect src_rect_){
 
 
 void ArmorTracker::update(){
-    float temp_score = 1000; // 初始分数
-    float area = history_detect_rects_[0].area;
-    temp_score += area;
-    for(auto item_rects : this->history_detect_rects_){
-
+    for(auto item_rects : history_detect_rects_){
+        
     }
     this->score_ = temp_score;
 }

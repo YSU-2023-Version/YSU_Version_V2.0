@@ -9,6 +9,10 @@
 #include "Timer/Timer.h"
 #include "Forecast/forecast.h"
 #include "RuneDetector/rune_detector.h"
+#include "GafSolver/iterative_projectile_tool.h"
+#include "GafSolver/gimbal_transform_tool.h"
+#include "GafSolver/gaf_projectile_solver.h"
+
 
 
 class ThreadManager
@@ -32,7 +36,6 @@ private:
     std::unique_ptr<Communication> p_communication_; //电控通信
 
     std::unique_ptr<RuneDetector> p_run_detector_;//
-
 
     Mat buffer[30];
     double sys_time[30];
