@@ -52,14 +52,19 @@ void ThreadManager::Consume(){
     while(1)//图像处理，可根据实际需求在其中添加，仅需保证consum处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
+        auto s1 = std::chrono::high_resolution_clock::now();
         if(j==i)
         {
             std::unique_lock <std::mutex> lock(mutex);
             condition.wait(lock);
         }
+        auto e1 = std::chrono::high_resolution_clock::now();
+        std::cout << "被锁时间：" << ((static_cast<std::chrono::duration<double, std::milli>>(s1 - e1)).count()) << std::endl;
+        auto s2 = std::chrono::high_resolution_clock::now();
         p_armor_detector_ -> LoadImage(buffer[j]);
- //       p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(   p_armor_detector_ -> DetectObjectArmor()  )   );
         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );        
+        auto e2 = std::chrono::high_resolution_clock::now();
+        std::cout << "识别时间：" << ((static_cast<std::chrono::duration<double, std::milli>>(s2 - e2)).count()) << std::endl;
         //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
@@ -73,17 +78,17 @@ void ThreadManager::Consume(){
         }
         auto t2 = std::chrono::high_resolution_clock::now();
 //        std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
-       std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
+        std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
 
 }
 
 void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_->Infantry中对应的数值即可
-   while(1)
+    while(1)
     {
       // p_communication_->ref_amorAttackMsg(p_communication_->Infantry.amorAttackmsg.yawErr, p_communication_->Infantry.amorAttackmsg.pitchErr,0, p_communication_->Infantry.amorAttackmsg.shootFlag, p_communication_->Infantry.amorAttackmsg.holderflag, true);
-       p_communication_->communication(p_communication_ -> Infantry);
-   }
+        p_communication_->communication(p_communication_ -> Infantry);
+    }
 
 
 }
