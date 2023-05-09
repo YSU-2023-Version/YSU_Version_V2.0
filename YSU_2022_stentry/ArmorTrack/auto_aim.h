@@ -11,7 +11,6 @@ class AutoAim{
     private:
 
     Yolov5 armor_detector;                  // 装甲板识别器
-    ArmorPredictor armor_predictor;         // 装甲板预测器
     std::vector<ArmorTracker> trackers;     // 跟踪器容器
 
     Mat src_image_;                         // 输入图像
@@ -27,6 +26,6 @@ class AutoAim{
     void detect_image2res(cv::Mat src_image_);
 
     cv::Point2f get_aim();
-}
+};
 
 #endif // !AUTOAIM_H

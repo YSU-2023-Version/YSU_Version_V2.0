@@ -9,8 +9,8 @@
 #define COLOR_RED 10   // 红
 #define COLOR_DEAD 11  // 死亡
 
-#ifndef ARMOR_TRACK
-#define ARMOR_TRACK
+#ifndef ARMOR_TRACKER_H
+#define ARMOR_TRACKER_H
 #include "Main/headfiles.h"
 #include "DeepLearning/yolov5.h"
 
@@ -36,6 +36,6 @@ public:
     cv::Point2f get_res_point();
     // 清除历史工作
     void clear_work();
-}
+};
 
-#endif // !ARMOR_TRACK
+#endif // !ARMOR_TRACKER_H

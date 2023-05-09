@@ -48,6 +48,8 @@ LIBS += /usr/local/lib/libopencv_calib3d.so \
 
 
 HEADERS += \
+    ArmorTrack/armor_track.h \
+    ArmorTrack/auto_aim.h \
     Communication/SerialPort.hpp \
     DeepLearning/yolov5.h \
     ThreadManager/thread_manager.h \
@@ -70,6 +72,8 @@ HEADERS += \
 
 
 SOURCES += \
+    ArmorTrack/armor_track.cpp \
+    ArmorTrack/auto_aim.cpp \
     Communication/SerialPort.cpp \
     DeepLearning/yolov5.cpp \
     ThreadManager/thread_manager.cpp \

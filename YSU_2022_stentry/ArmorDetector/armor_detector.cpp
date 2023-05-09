@@ -264,7 +264,6 @@ void ArmorDetector::Show(){
 }
 
 /**
- * @author 可莉不知道哦
  * @brief ArmorDetector::Yolov2Res
  * @details yolov5识别器，处理完成之后的结果将存到match_armors_的vector中
  */
@@ -275,7 +274,6 @@ void ArmorDetector::Yolov2Res(){
 
 
 /**
- * @author 可莉不知道哦
  * @return vector<Point2d>& 
  * @param void
  * @brief 在初始化之后，每一次加载图片之后就执行一次识别过程，返回最终中心点坐标
