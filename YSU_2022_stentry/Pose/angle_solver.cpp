@@ -39,7 +39,7 @@ void AngleSolver::InitAngle()
 
 double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
 {
-    if(!(object_armor_points_[0]==Point2f(0,0)&&object_armor_points_[1]==Point2f(0,0)&&object_armor_points_[2]==Point2f(0,0)&&object_armor_points_[3]==Point2f(0,0)))
+    if(!(object_armor_points_[0] == Point2f(0, 0) && object_armor_points_[1] == Point2f(0, 0) && object_armor_points_[2] == Point2f(0, 0) && object_armor_points_[3] == Point2f(0, 0)))
     {
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
     _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
@@ -63,11 +63,17 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     double y_pos=tVec.at<double>(1,0);
     double z_pos=tVec.at<double>(2,0);
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
-    cout<<"distance= "<<distance_3d<<endl;
     // 重力补偿得到结果
-    // projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[0], p_y_err[1]);
+    projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[0], p_y_err[1]);
+    // 根据重力补偿的demo.cpp单位进行调整
+    p_y_err[0] = p_y_err[0] * 180 / CV_PI;
+    p_y_err[1] = p_y_err[1] * 180 / CV_PI;
 
-    // p_y_err[0] = p_y_err[0]
+#ifdef DEBUG
+    std::cout<<"distance= " << distance_3d << std::endl;
+	std::cout << "pitch=" << p_y_err[0] << std::endl;
+	std::cout << "yaw=" << p_y_err[1] << std::endl;
+#endif // DEBUG
 
     shoot=1;
     }

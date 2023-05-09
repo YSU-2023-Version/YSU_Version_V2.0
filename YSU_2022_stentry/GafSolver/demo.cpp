@@ -7,8 +7,7 @@ using namespace cv;
 using namespace std;
 int main() {
 	auto gaf_solver = std::make_shared<rmoss_projectile_motion::GafProjectileSolver>(15, 0.01);
-	auto projectile_tansformoss_tool =
-		std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
+	auto projectile_tansformoss_tool = std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
 	double x =0.7, y =4.7, z = 9.1;//单位为米
 	double pitch = -atan2(y, z) * 180 / CV_PI;
 	double yaw=atan2(x,z)*180/CV_PI;
