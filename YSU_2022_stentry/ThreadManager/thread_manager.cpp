@@ -38,7 +38,7 @@ void ThreadManager::Produce(){
             i = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
-        // 稳定帧率每秒100帧
+        // 稳定帧率每秒100帧，应该要达到生产者的速度要小于消费者速度
         double time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
