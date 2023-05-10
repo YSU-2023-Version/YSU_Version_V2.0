@@ -88,10 +88,10 @@ int CameraManager::InitCamera()
 #endif
     if(tCapability.sIspCapacity.bMonoSensor){
         channel=1;
-        CameraSetIspOutFormat(hCamera,CAMERA_MEDIA_TYPE_MONO8);
+        CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_MONO8);
     }else{
         channel=3;
-        CameraSetIspOutFormat(hCamera,CAMERA_MEDIA_TYPE_BGR8);
+        CameraSetIspOutFormat(hCamera, CAMERA_MEDIA_TYPE_BGR8);
     }
 //********
 #endif
@@ -114,33 +114,6 @@ bool CameraManager::isOpen(){
     return this->iStatus;
 }
 
-/**
- *  读取相机图片
-*/
-bool CameraManager::read(cv::Mat &img) const {
-    if(!isOpen()) return false;
-    tSdkFrameHead head;
-    BYTE *buffer;
-    CameraGetImageBuffer(iStatus, &head, &buffer, 100);
-    img = cv::Mat(head.iHeight, head.iWidth, CV_8UC3);
-    CameraImageProcess(iStatus, buffer, img.data, &head);
-    CameraReleaseImageBuffer(iStatus, buffer);
-    return true;
-}
-/**
- * 读取相机图片，并且计算时间
-*/
-bool CameraManager::read(cv::Mat &img, double &timestamp_ms) const {
-    if(!isOpen()) return false;
-    tSdkFrameHead head;
-    BYTE *buffer;
-    CameraGetImageBuffer(iStatus, &head, &buffer, 100);
-    img = cv::Mat(head.iHeight, head.iWidth, CV_8UC3);
-    CameraImageProcess(iStatus, buffer, img.data, &head);
-    timestamp_ms = head.uiTimeStamp / 10.;
-    CameraReleaseImageBuffer(iStatus, buffer);
-    return true;
-}
 
 Mat CameraManager::ReadImage()
 {   //cout<<"CameraConnectTest:"<<CameraConnectTest(hCamera)<<endl;
@@ -176,35 +149,35 @@ Mat CameraManager::ReadImage()
     } else {
         
     }
-//         if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,500) == CAMERA_STATUS_SUCCESS)
-//         {//摄像头连接成功，返回读图结果。
-//             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
+        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,200) == CAMERA_STATUS_SUCCESS)
+        {//摄像头连接成功，返回读图结果。
+            CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
 
-//             iplImage = cvCreateImageHeader(cvSize(sFrameInfo.iWidth,sFrameInfo.iHeight),IPL_DEPTH_8U,channel);
-//             cvSetData(iplImage,g_pRgbBuffer,sFrameInfo.iWidth*channel);//此处只是设置指针，无图像块数据拷贝，不需担心转换效率
-//             //以下两种方式都可以显示图像或者处理图像
+            iplImage = cvCreateImageHeader(cvSize(sFrameInfo.iWidth,sFrameInfo.iHeight),IPL_DEPTH_8U,channel);
+            cvSetData(iplImage,g_pRgbBuffer,sFrameInfo.iWidth*channel);//此处只是设置指针，无图像块数据拷贝，不需担心转换效率
+            //以下两种方式都可以显示图像或者处理图像
 
-//             Iimag=cv::cvarrToMat(iplImage);
+            Iimag = cv::cvarrToMat(iplImage);
 
-//             //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
-//             //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
-//             CameraReleaseImageBuffer(hCamera,pbyBuffer);
-//             //cout<<"cols"<<Iimag.cols<<endl;
+            //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
+            //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
+            CameraReleaseImageBuffer(hCamera, pbyBuffer);
+            //cout<<"cols"<<Iimag.cols<<endl;
 
-//             return Iimag;
-//         }
-//     else{
-// //        cout<<"warning:camera loading failed..."<<endl;//摄像头掉线保护，返回欺骗图
-// //        error_num++;
-// //        cout<<"                                         \n\n error_num:  "<<error_num<<endl;
-// //        if(error_num>20)
-// //        {
-// //            int a=0;
-// //            cout<<1/a;
-// //        }
-// //        InitCamera();
-// //        return sham_img;
-//     }
+            return Iimag;
+        }
+    else{
+//        cout<<"warning:camera loading failed..."<<endl;//摄像头掉线保护，返回欺骗图
+//        error_num++;
+//        cout<<"                                         \n\n error_num:  "<<error_num<<endl;
+//        if(error_num>20)
+//        {
+//            int a=0;
+//            cout<<1/a;
+//        }
+//        InitCamera();
+//        return sham_img;
+    }
 #endif
 
 }
