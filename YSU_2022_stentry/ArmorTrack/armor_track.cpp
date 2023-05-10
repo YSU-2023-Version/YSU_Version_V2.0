@@ -9,9 +9,15 @@ ArmorTracker::ArmorTracker(){
     max_len = 10;
 }
 
-ArmorTracker::ArmorTracker(int max_len = 10){ // 先默认10
+ArmorTracker::ArmorTracker(int max_len){ // 先默认10
     this->max_len = max_len;
 }
+
+
+void ArmorTracker::add_to_tracker(DetectRect src_rect_){
+    this->history_detect_rects_.push_back(src_rect_);
+}
+
 
 void ArmorTracker::update(){
     for(auto item_rects : history_detect_rects_){
@@ -19,6 +25,18 @@ void ArmorTracker::update(){
     }
 }
 
+
+cv::Point2f ArmorTracker::get_res_point(){
+
+}
+
+
+
 void ArmorTracker::clear_work(){
 
+}
+
+
+float ArmorTracker::get_res_score(){
+    return score_;
 }

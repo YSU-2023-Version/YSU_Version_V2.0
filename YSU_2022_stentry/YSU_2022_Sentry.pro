@@ -48,8 +48,14 @@ LIBS += /usr/local/lib/libopencv_calib3d.so \
 
 
 HEADERS += \
+    ArmorTrack/armor_track.h \
+    ArmorTrack/auto_aim.h \
     Communication/SerialPort.hpp \
     DeepLearning/yolov5.h \
+    GafSolver/gaf_projectile_solver.h \
+    GafSolver/gimbal_transform_tool.h \
+    GafSolver/iterative_projectile_tool.h \
+    GafSolver/projectile_solver_interface.h \
     ThreadManager/thread_manager.h \
     ArmorDetector/armor_detector.h \
     RuneDetector/rune_detector.h \
@@ -70,8 +76,13 @@ HEADERS += \
 
 
 SOURCES += \
+    ArmorTrack/armor_track.cpp \
+    ArmorTrack/auto_aim.cpp \
     Communication/SerialPort.cpp \
     DeepLearning/yolov5.cpp \
+    GafSolver/gaf_projectile_solver.cpp \
+    GafSolver/gimbal_transform_tool.cpp \
+    GafSolver/iterative_projectile_tool.cpp \
     ThreadManager/thread_manager.cpp \
     ArmorDetector/armor_detector.cpp \
     RuneDetector/rune_detector.cpp \

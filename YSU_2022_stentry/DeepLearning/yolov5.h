@@ -39,7 +39,8 @@ using namespace InferenceEngine;
 struct DetectRect{
     cv::Point min_point;                       // 右上角点
     cv::Point max_point;                       // 左上角点
-    cv::Rect rect;                             // 正框（方向是竖直的）
+    cv::Rect rect;                             // 正框（方向是竖直的，用于求出IOU）
+    cv::RotatedRect r_rect;                    // 旋转框
     std::vector<cv::Point2f> points;           // 点的容器
     cv::Point cen_p;                           // 中心点坐标
     int class_id;                              // 类别ID
@@ -48,7 +49,7 @@ struct DetectRect{
     float color_p;                             // 最认可颜色概率
     int area;                                  // 面积
     std::string class_name;                    // 类别名称
-    Systime time;                               // 时间戳
+    Systime time;                              // 时间戳
 };
 class Yolov5{
     private:

@@ -37,14 +37,16 @@ void Yolov5::init_yolov5_detector(){
     this->color_num = 2;
     this->class_num = 8;
     this->class_names.push_back("sentry");
+    this->class_names.push_back("a");
     this->class_names.push_back("hero_1");
-    this->class_names.push_back("engineer_2");
+    this->class_names.push_back("hero_1");
+    this->class_names.push_back("energee_2");
     this->class_names.push_back("infantry_3");
     this->class_names.push_back("infantry_4");
     this->class_names.push_back("infantry_5");
-    this->class_names.push_back("front");
+    this->class_names.push_back("d");
     this->class_names.push_back("base");
-
+    this->class_names.push_back("f");
     printf("---------------------done---------------------\n");
 }
 
@@ -222,7 +224,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence >= 0.66) {
+        if(confidence >= 0.75) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
@@ -250,12 +252,12 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             float color_p = output_data[box_color + basic_pos];
             // 如果最大的类别置信度过低，就舍去
 
-            if(box_color ==  11) { // dead
-                continue;
-            }
-            if(box_color == 9){ // blue not
-                continue;
-            }
+//            if(box_color ==  11) { // dead
+//                continue;
+//            }
+//            if(box_color == 9){ // blue not
+//                continue;
+//            }
 //            if(box_color == 10){ // red not
 //                continue;
 //            }
@@ -284,8 +286,9 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             temp_rect.class_p = class_p;
             temp_rect.color_id = box_color;
             temp_rect.color_p = color_p;
-            temp_rect.area = temp_rect.rect.area();
-            temp_rect.class_name = temp_rect.color_id == 9 ? "blue_" : temp_rect.color_id == 10 ? "red_" : "dead_" + this->class_names[temp_rect.class_id - 12];
+            temp_rect.area = temp_rect.r_rect.size.area();
+            std::string color_name = temp_rect.color_id == 9 ? "blue_" : temp_rect.color_id == 10 ? "red_" : "dead_";
+            temp_rect.class_name = color_name + this->class_names[temp_rect.class_id - 11];
             getSystime(temp_rect.time); // 获取时间戳
             #ifdef DEBUG
 //            std::cout << "confidence: " << confidence << std::endl;
