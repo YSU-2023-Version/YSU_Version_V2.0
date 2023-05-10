@@ -16,8 +16,8 @@ int CameraManager::InitCamera()
     iplImage = NULL;
     channel=3;
     explore_time=6000;
-    picWidth=960;
-    picHeight=720;
+    picWidth=1280;
+    picHeight=1024;
     error_num=0;
     //3.27测试视频输入
 #ifdef read_from_avi
@@ -149,7 +149,7 @@ Mat CameraManager::ReadImage()
     } else {
         
     }
-        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,200) == CAMERA_STATUS_SUCCESS)
+        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,1000) == CAMERA_STATUS_SUCCESS)
         {//摄像头连接成功，返回读图结果。
             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
 
