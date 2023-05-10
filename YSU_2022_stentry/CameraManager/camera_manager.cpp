@@ -137,7 +137,7 @@ Mat CameraManager::ReadImage()
 #endif
     //注释下列代码
 #ifndef read_from_avi
-        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,1000) == CAMERA_STATUS_SUCCESS)
+        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,100) == CAMERA_STATUS_SUCCESS)
         {//摄像头连接成功，返回读图结果。
             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
 
