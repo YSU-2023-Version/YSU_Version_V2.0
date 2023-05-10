@@ -29,7 +29,7 @@ void ThreadManager::Produce(){
     {
         auto t1 = std::chrono::high_resolution_clock::now();
 
-        buffer[i]=p_camera_manager_ -> ReadImage();
+        buffer[i] = p_camera_manager_ -> ReadImage();
         getSystime(sys_time[i]);
         //cout << "i : " << i << " j: " << j;
         condition.notify_one(); //通知wait()函数，解除阻止
