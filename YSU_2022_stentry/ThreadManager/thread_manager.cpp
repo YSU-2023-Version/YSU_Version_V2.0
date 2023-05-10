@@ -29,6 +29,7 @@ void ThreadManager::Produce(){
     {
         auto t1 = std::chrono::high_resolution_clock::now();
 
+
         buffer[i] = p_camera_manager_ -> ReadImage();
         getSystime(sys_time[i]);
         //cout << "i : " << i << " j: " << j;
@@ -46,7 +47,8 @@ void ThreadManager::Produce(){
         while (std::chrono::steady_clock::now() < end_time) {
             std::this_thread::yield();
         }
-        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << std::endl;
+        auto t3 = std::chrono::high_resolution_clock::now();
+        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
@@ -63,8 +65,8 @@ void ThreadManager::Consume(){
             condition.wait(lock);
         }
         p_armor_detector_ -> LoadImage(buffer[j]);
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
