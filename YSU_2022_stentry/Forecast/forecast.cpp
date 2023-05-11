@@ -12,9 +12,16 @@
 #include "Main/headfiles.h"
 #include "Forecast/forecast.h"
 #include "Timer/Timer.h"
-#include<gsl/gsl_multifit.h>
-#include<gsl/gsl_multifit.h>
-//#define DEBUG 1
+#include <gsl/gsl_blas.h>
+
+#include <gsl/gsl_matrix.h> // 包含GSL库中的矩阵相关数据结构和函数
+#include <gsl/gsl_vector.h> // 包含GSL库中的向量相关数据结构和函数
+#include <gsl/gsl_multifit.h> // 包含GSL库中的多项式拟合和线性回归相关函数
+
+#include<gsl_permutation.h>
+#include <gsl/gsl_linalg.h>
+
+#define DEBUG 1
 #define max_time 60000
 //60000
 Mat show;
@@ -387,75 +394,64 @@ void Forecast::Init()
 double Forecast::my_gsl(data d, double aim_time)
 {
     int time_resize=1;
-    const size_t n=d.n;//数据点数目
-    const size_t p=3;//多项式的次数
-                                        const double sigma = 1; // 噪声标准差
+    const size_t n = d.n; // 样本数量
+    const size_t p = 3; // 参数数量
+    //double x[n] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+    //double y[n] = {1.2, 2.1, 3.1, 4.0, 5.2, 6.1, 7.0, 8.2, 9.1, 10.2};
 
-    vector<double>t(n);
-    vector<double>y(n);
-    aim_time/=time_resize;
-//    double x[n]={1.0,2.0,3.0};
-//    double y[n]={1.0,4.0,9.0};
-    //cout<<"\n\n                                     x:";
-    for(int i=0;i<n;i++)
-    {
-        t[i]=d.t[i]/time_resize;
-        y[i]=d.y[i];
-        cout<<i<<":"<<t[i]<<endl;
-    }
-    gsl_matrix *T = gsl_matrix_alloc(n,p);
+    // 构造设计矩阵和响应向量
+    gsl_matrix *T = gsl_matrix_alloc(n, p);
     gsl_vector *Y = gsl_vector_alloc(n);
-    gsl_vector *c = gsl_vector_alloc(p);
-    gsl_matrix *cov = gsl_matrix_alloc(p,p);
-                                        gsl_vector *w = gsl_vector_alloc(n);
-    double chisq;
-
-
-    for(size_t i=0;i<n;i++)
-    {
-        double xi=t[i];
-
-        gsl_matrix_set(T,i,0,1.0);
-        gsl_matrix_set(T,i,1,xi);
-        gsl_matrix_set(T,i,2,xi*xi);
-        gsl_vector_set(Y,i,y[i]);
-
-                                        double wi = 1.0 / (sigma * sigma);
-                                        gsl_vector_set(w, i, wi);
-    }
-    // 构造权重矩阵
-    gsl_matrix *W = gsl_matrix_alloc(n, n);
-    gsl_matrix_set_zero(W);
     for (int i = 0; i < n; i++) {
-        double wi = gsl_vector_get(w, i);
-        gsl_matrix_set(W, i, i, wi);
+        double ti = d.t[i];
+        gsl_matrix_set(T, i, 0, ti * ti);
+        gsl_matrix_set(T, i, 1, ti);
+        gsl_matrix_set(T, i, 2, 1.0);
+        gsl_vector_set(Y, i, d.y[i]);
     }
 
-    // 构造岭回归模型
-    double lambda = 1e9; // 正则化参数
+    // 构造正则化矩阵
+    double lambda = 1; // 正则化参数
+    gsl_matrix *R = gsl_matrix_alloc(p, p);
+    gsl_matrix_set_zero(R);
+    gsl_matrix_set(R, 0 , 0 ,lambda);
+    gsl_matrix_set(R, 1 , 1, lambda);
+    gsl_matrix_set(R, 2 , 2, lambda);
 
-    gsl_multifit_linear_workspace *work = gsl_multifit_linear_alloc(n,p);
-    //gsl_multifit_linear(T,Y,c,cov,&chisq,work);
-    gsl_multifit_wlinear(T,w,Y,c,cov,&lambda,work);
-   // gsl_multifit_wlinear(T, W, Y, NULL, work, &lambda, cov);
+    // 计算T^T T + lambda R
+    gsl_matrix *TtT = gsl_matrix_alloc(p, p);
+    gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, T, T, 0.0, TtT);
+    gsl_matrix_add(TtT, R);
 
-    gsl_multifit_linear_free(work);
-    cout<<"拟合二次函数："<<gsl_vector_get(c,0)<<"+"<<gsl_vector_get(c,1)<<"t+"<<gsl_vector_get(c,2)<<"t^2"<<endl;
-    double c0=gsl_vector_get(c,0);
-    double c1=gsl_vector_get(c,1);
-    double c2=gsl_vector_get(c,2);
+    // 计算X^T Y
+    gsl_vector *TtY = gsl_vector_alloc(p);
+    gsl_blas_dgemv(CblasTrans, 1.0, T, Y, 0.0, TtY);
+
+    // 解线性方程组 (X^T X + lambda R) beta = X^T Y
+    gsl_vector *beta = gsl_vector_alloc(p);
+    gsl_permutation *perm = gsl_permutation_alloc(p);
+    int signum;
+    gsl_linalg_LU_decomp(TtT, perm, &signum);
+    gsl_linalg_LU_solve(TtT, perm, TtY, beta);
+
+    // 输出结果
+
+    std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
+    std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
+    std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
+    auto a=gsl_vector_get(beta, 0);
+    auto b=gsl_vector_get(beta, 1);
+    auto c=gsl_vector_get(beta, 2);
+    x_c1=to_string(a),x_c2=to_string(b),x_c3=to_string(c);
+    // 释放内存
     gsl_matrix_free(T);
-    gsl_matrix_free(cov);
     gsl_vector_free(Y);
-    gsl_vector_free(c);
-    //cout<<"r_c"<<c2*aim_time*aim_time+c1*aim_time+c0<<",";
-    x_c1=to_string(c2);
-    x_c2=to_string(c1);
-    x_c3=to_string(c0);
-
-
-
-    return c2*aim_time*aim_time+c1*aim_time+c0;
+    gsl_matrix_free(R);
+    gsl_matrix_free(TtT);
+    gsl_vector_free(TtY);
+    gsl_vector_free(beta);
+    gsl_permutation_free(perm);
+    return a*aim_time*aim_time+b*aim_time+c;
 
 
 }
@@ -466,11 +462,11 @@ double Forecast::my_gsl(data d, double aim_time)
      for(int i=0;i<record_history_size;i++)
      {//分别为t,x,y历史值赋值
         t[i]=record_history[i].time;
-        Point kPreCenter=kalman_t.Kalman_filter(record_history[i].center);
-        ft[0][i]=kPreCenter.x;
-        ft[1][i]=kPreCenter.y;
-        //ft[0][i]=record_history[i].center.x;
-        //ft[1][i]=record_history[i].center.y;
+//        Point kPreCenter=kalman_t.Kalman_filter(record_history[i].center);
+//        ft[0][i]=kPreCenter.x;
+//        ft[1][i]=kPreCenter.y;
+        ft[0][i]=record_history[i].center.x;
+        ft[1][i]=record_history[i].center.y;
      }
      //分别打包装入gsl算子
      d[0]={(size_t)record_history_size,t,ft[0]};
