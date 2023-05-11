@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--2022ysu-eagle forecast参数调整-->
 <opencv_storage>
-<record_history_size>7</record_history_size><!--   baocun     lishizhen  -->
-<record_history_interval_max>5</record_history_interval_max><!-- mei jiange    baocun yici shijianchuo -->
+<record_history_size>3</record_history_size><!--   baocun     lishizhen  -->
+<record_history_interval_max>2</record_history_interval_max><!-- mei jiange    baocun yici shijianchuo -->
 <pre_time>50</pre_time><!-- forecast pre_time hou de jidadian (ms)-->
-<lost_aim_max>5</lost_aim_max>
+<lost_aim_max>10</lost_aim_max>
 <real_weight>0.75</real_weight>
 <fore_weight>0.1</fore_weight>
 <Kalman_Q>1</Kalman_Q>

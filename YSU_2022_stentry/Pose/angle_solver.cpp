@@ -65,7 +65,9 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     double z_pos=tVec.at<double>(2,0)/1000;
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
     // 重力补偿得到结果
-
+    std::cout<<"distance= " << distance_3d << std::endl;
+    std::cout << "pitch_before=" << _yErr << std::endl;
+    std::cout << "yaw_before=" << _xErr << std::endl;
     projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[1], p_y_err[0]);
     // 根据重力补偿的demo.cpp单位进行调整
     p_y_err[0] = p_y_err[0] * 180 / CV_PI;
