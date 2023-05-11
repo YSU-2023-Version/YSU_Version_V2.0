@@ -251,7 +251,6 @@ void Forecast::Init()
       {
         result.clear();
         lost_aim_num=0;
-
         //预测Api，仅针对中心点进行预测。
         get_forecast();
         result_center=kalman_p.Kalman_filter(result_center);
@@ -433,7 +432,7 @@ double Forecast::my_gsl(data d, double aim_time)
     }
 
     // 构造岭回归模型
-    double lambda = 1; // 正则化参数
+    double lambda = 1e9; // 正则化参数
 
     gsl_multifit_linear_workspace *work = gsl_multifit_linear_alloc(n,p);
     //gsl_multifit_linear(T,Y,c,cov,&chisq,work);
