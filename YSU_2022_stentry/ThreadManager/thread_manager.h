@@ -39,6 +39,7 @@ private:
 
     Mat buffer[30];
     double sys_time[30];
+    bool locker[30];
     int i,j;
     std::mutex mutex;
     std::condition_variable condition; //条件变量对象

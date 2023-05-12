@@ -22,15 +22,16 @@ void ThreadManager::Init(){
     p_angle_solver_ ->InitAngle();
     p_forecast_->Init();
     p_communication_->open();
+    memset(locker, false, sizeof locker);
 }
 
 void ThreadManager::Produce(){
     while(1)
     {
         auto t1 = std::chrono::high_resolution_clock::now();
-
-        buffer[i]=p_camera_manager_ -> ReadImage();
+        buffer[i] = p_camera_manager_ -> ReadImage();
         getSystime(sys_time[i]);
+        locker[i] = true;
         //cout << "i : " << i << " j: " << j;
         condition.notify_one(); //通知wait()函数，解除阻止
         if( (++i) % 30 == 0 )
@@ -46,7 +47,8 @@ void ThreadManager::Produce(){
         while (std::chrono::steady_clock::now() < end_time) {
             std::this_thread::yield();
         }
-        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << std::endl;
+        auto t3 = std::chrono::high_resolution_clock::now();
+        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
@@ -57,26 +59,35 @@ void ThreadManager::Consume(){
     while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
-        if(j == i)
+        if(!locker[j])
         {
             std::unique_lock <std::mutex> lock(mutex);
             condition.wait(lock);
         }
+        // 测试多线程锁的问题
+//        puts("");
+//        for (int k = 0;k < 30;k++) {
+//            cout << locker[k] << " ";
+//        }
+//        puts("");
         p_armor_detector_ -> LoadImage(buffer[j]);
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+        locker[j] = false;
+        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
+
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
-        //debug
-        p_armor_detector_ -> Show();
+        // debug
+        // p_armor_detector_ -> Show();
         //p_armor_detector_ -> baocun();
         if( (++j) % 30 == 0 )
         {
             j = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
-        std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+        //std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
         std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
 
@@ -85,8 +96,18 @@ void ThreadManager::Consume(){
 void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_->Infantry中对应的数值即可
     while(1)
     {
-      // p_communication_->ref_amorAttackMsg(p_communication_->Infantry.amorAttackmsg.yawErr, p_communication_->Infantry.amorAttackmsg.pitchErr,0, p_communication_->Infantry.amorAttackmsg.shootFlag, p_communication_->Infantry.amorAttackmsg.holderflag, true);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        // p_communication_->ref_amorAttackMsg(p_communication_->Infantry.amorAttackmsg.yawErr, p_communication_->Infantry.amorAttackmsg.pitchErr,0, p_communication_->Infantry.amorAttackmsg.shootFlag, p_communication_->Infantry.amorAttackmsg.holderflag, true);
         p_communication_->communication(p_communication_ -> Infantry);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        // 稳定帧率每秒100帧
+        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        auto start_time = std::chrono::steady_clock::now();
+        auto end_time = start_time + std::chrono::milliseconds(time);
+        // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
+        while (std::chrono::steady_clock::now() < end_time) {
+            std::this_thread::yield();
+        }
     }
 
 

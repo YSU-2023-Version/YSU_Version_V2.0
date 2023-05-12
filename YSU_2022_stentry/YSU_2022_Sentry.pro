@@ -37,7 +37,7 @@ LIBS += /usr/local/lib/libopencv_calib3d.so \
 /usr/local/lib/libopencv_videoio.so \
 /usr/local/lib/libopencv_video.so \
 /usr/local/lib/libopencv_videostab.so\
-/home/robomaster/linuxSDK_V2.1.0.20/lib/x64/libMVSDK.so \
+/home/robomaster/linuxSDK_V2.1.0.2/lib/x64/libMVSDK.so \
 /usr/local/lib/libgsl.so \
 /usr/local/lib/libgslcblas.so \
 # 自行根据微机的库的位置修改

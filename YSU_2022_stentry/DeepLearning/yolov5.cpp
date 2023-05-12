@@ -6,7 +6,7 @@
 
 #include "DeepLearning/yolov5.h"
 
-// #define DEBUG
+#define DEBUG
 #define WINDOW_NAME "res_show"
 
 float sigmoid_function(float a)

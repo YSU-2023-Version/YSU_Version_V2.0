@@ -9,11 +9,11 @@
 
 struct chuo//li shi chuo
 {
-    vector<Point2d> rect;
-    Point2d center;
+    vector<Point2f> rect;
+    Point2f center;
     double time;
     chuo(){};
-    chuo(vector<Point2d> &ora,double &time_):rect(ora),time(time_),center(Point2d((ora[0].x+ora[1].x+ora[2].x+ora[3].x)/4,(ora[0].y+ora[1].y+ora[2].y+ora[3].y)/4)){};
+    chuo(vector<Point2f> &ora,double &time_):rect(ora),time(time_),center(Point2f((ora[0].x+ora[1].x+ora[2].x+ora[3].x)/4,(ora[0].y+ora[1].y+ora[2].y+ora[3].y)/4)){};
 };
 
 
@@ -21,19 +21,20 @@ class Forecast
 {public:
     Forecast();
     void Init();
-    vector<Point2d>& forcast(vector<Point2d> &original,double time);
+    vector<Point2f>& forcast(vector<Point2f> &original,double time);
     Point2f lu, ld, ru, rd;
 
 
 private:
 
     void get_forecast();
+    double my_gsl(data d, double aim_time);
   //  bool lagrangeint(vector<double>&X, vector<double>&Y, vector<double>&xp, vector<double> &get);
     chuo now;
     vector<chuo> record_history;
-    vector<Point2d> result;
+    vector<Point2f> result;
 
-    vector<Point2d>  last_result;
+    vector<Point2f>  last_result;
 
     int record_history_size;
 
@@ -57,7 +58,7 @@ private:
     //  vector<unique_ptr<Kalman_t>> p_kal;
 
 
-    Point2d result_center;
+    Point2f result_center;
     float vec_result_to_limited[2];
     float result_correct_ratio;
     double original_vec_length;
@@ -70,7 +71,7 @@ private:
     double *weight[2];//预测历史帧权重。
     double *t;
 
-    vector<Point2d> centers;//用于卡尔曼计算速度
+    vector<Point2f> centers;//用于卡尔曼计算速度
 
 };
 
