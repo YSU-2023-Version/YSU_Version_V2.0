@@ -15,7 +15,21 @@ ThreadManager::ThreadManager():
     j(0)
 {}
 
+void ThreadManager::InitThreadManager(){
+    std::string xml_path = "../xml_path/thread.xml";
+    cv::FileStorage fr;
+    fr.open(xml_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        std::cout << "armor_xml floading failed..." << std::endl;
+        fr=cv::FileStorage(xml_path, cv::FileStorage::READ);
+        fr.open(xml_path, cv::FileStorage::READ);
+    }
+    fr["FPS"] >> FPS_count_; // 读取fps值
+    this->base_time_ = 1000 / FPS_count_; // 时间的单位是ms
+}
+
 void ThreadManager::Init(){
+
     p_camera_manager_ -> InitCamera();
     p_armor_detector_ -> InitArmor();
     p_communication_ -> InitCom();
@@ -40,7 +54,7 @@ void ThreadManager::Produce(){
         }
         auto t2 = std::chrono::high_resolution_clock::now();
         // 稳定帧率每秒100帧
-        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        int time = base_time_ - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
         // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
@@ -101,7 +115,7 @@ void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_
         p_communication_->communication(p_communication_ -> Infantry);
         auto t2 = std::chrono::high_resolution_clock::now();
         // 稳定帧率每秒100帧
-        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        int time = base_time_ - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
         // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
@@ -109,8 +123,6 @@ void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_
             std::this_thread::yield();
         }
     }
-
-
 }
 
 

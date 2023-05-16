@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!--2022ysu-eagle 多线程部分参数调整-->
+<opencv_storage>
+<FPS>100</FPS><!--2022ysu-eagle 目标装甲板检测参数调整-->
+</opencv_storage>
