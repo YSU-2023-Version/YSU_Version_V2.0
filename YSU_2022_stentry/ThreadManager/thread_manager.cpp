@@ -72,15 +72,16 @@ void ThreadManager::Consume(){
 //        puts("");
         p_armor_detector_ -> LoadImage(buffer[j]);
         locker[j] = false;
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
 
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
 
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
         // debug
-        // p_armor_detector_ -> Show();
+         p_armor_detector_ -> Show();
+         //p_armor_detector_ ->Show(p_communication_->Infantry.amorAttackmsg.yawErr,p_communication_->Infantry.amorAttackmsg.pitchErr);
         //p_armor_detector_ -> baocun();
         if( (++j) % 30 == 0 )
         {

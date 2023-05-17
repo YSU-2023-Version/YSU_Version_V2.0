@@ -229,6 +229,7 @@ void Communication::UpdateData(double *p_y_err)
     Infantry.amorAttackmsg.pitchErr=(float)p_y_err[1];
     std::cout<<"yaw:"<<Infantry.amorAttackmsg.yawErr<<std::endl;
     std::cout<<"pitch:"<<Infantry.amorAttackmsg.pitchErr<<std::endl;
+
 }
 
 void Communication::shoot_err(int shoot)

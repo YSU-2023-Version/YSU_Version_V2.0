@@ -36,6 +36,7 @@ public:
     void ScreenArmor();
     void ClearAll();
     void Show();
+    void Show(double y_err,double p_err);
     void baocun();
     void PerspectiveTransformation();
     cv::RotatedRect boundingRRect(const cv::RotatedRect & left, const cv::RotatedRect & right);
