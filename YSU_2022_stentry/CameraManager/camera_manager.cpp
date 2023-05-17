@@ -118,7 +118,7 @@ bool CameraManager::isOpen(){
  *  读取相机图片
 */
 bool CameraManager::read(cv::Mat &img) const {
-    if(!isOpen()) return false;
+    if(!capture.isOpened()) return false;
     tSdkFrameHead head;
     BYTE *buffer;
     CameraGetImageBuffer(iStatus, &head, &buffer, 100);
@@ -131,7 +131,7 @@ bool CameraManager::read(cv::Mat &img) const {
  * 读取相机图片，并且计算时间
 */
 bool CameraManager::read(cv::Mat &img, double &timestamp_ms) const {
-    if(!isOpen()) return false;
+    if(!capture.isOpened()) return false;
     tSdkFrameHead head;
     BYTE *buffer;
     CameraGetImageBuffer(iStatus, &head, &buffer, 100);

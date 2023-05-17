@@ -310,7 +310,18 @@ void Forecast::Init()
 //        result_center.y=p_kal[1]->KalmanFilter(result_center.y);
 
         //通过中心点和方向向量，复原目标装甲板。
-        vector<Point2f> k_result;
+        int error=70;
+        if(result_center.x-record_history[record_history.size()-1].center.x>error)
+            result_center.x=record_history[record_history.size()-1].center.x+error;
+        else if(result_center.x-record_history[record_history.size()-1].center.x<-error)
+            result_center.x=record_history[record_history.size()-1].center.x-error;
+        if(result_center.y-record_history[record_history.size()-1].center.y>error)
+            result_center.y=record_history[record_history.size()-1].center.y+error;
+        else if(result_center.y-record_history[record_history.size()-1].center.y<-error)
+            result_center.y=record_history[record_history.size()-1].center.y-error;
+
+
+            vector<Point2f> k_result;
         for(int i=0;i<4;i++)
         {
             result.emplace_back(Point2f(result_center.x+vec_distribution[2*i], result_center.y+vec_distribution[2*i+1]));
@@ -411,7 +422,7 @@ double Forecast::my_gsl(data d, double aim_time)
     }
 
     // 构造正则化矩阵
-    double lambda = 0.01; // 正则化参数
+    double lambda = 0.1; // 正则化参数
     gsl_matrix *R = gsl_matrix_alloc(p, p);
     gsl_matrix_set_zero(R);
     gsl_matrix_set(R, 0 , 0 ,lambda);

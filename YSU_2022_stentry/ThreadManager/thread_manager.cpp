@@ -86,7 +86,7 @@ void ThreadManager::Consume(){
 //        puts("");
         p_armor_detector_ -> LoadImage(buffer[j]);
         locker[j] = false;
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        // p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
 
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
