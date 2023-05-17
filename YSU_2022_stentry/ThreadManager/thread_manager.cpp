@@ -29,7 +29,7 @@ void ThreadManager::InitThreadManager(){
 }
 
 void ThreadManager::Init(){
-
+    this->InitThreadManager();
     p_camera_manager_ -> InitCamera();
     p_armor_detector_ -> InitArmor();
     p_communication_ -> InitCom();
