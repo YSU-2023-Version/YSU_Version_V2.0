@@ -47,7 +47,7 @@ ArmorDetector::ArmorDetector()://  1
 void ArmorDetector::InitArmor()
 {
     //cout<<"装甲板检测初始化成功！"<<endl;
-    std::cout << "armor_detector init begin" << std::endl;
+    //！std::cout << "armor_detector init begin" << std::endl;
 
     std::string file_path="../xml_path/armor_limited.xml";
     cv::FileStorage fr;
@@ -116,7 +116,7 @@ void ArmorDetector::LoadImage(cv::Mat &frame)
  */
 void ArmorDetector::ScreenArmor(){
 #ifdef DEBUG
-    std::cout << "match_armors_.size():" << match_armors_.size() << std::endl;
+    //！std::cout << "match_armors_.size():" << match_armors_.size() << std::endl;
 #endif
 
     record_history_arr_num.emplace_back(match_armors_.size());//tuxiangzhong zhenshi jiance daode zhuangjiaban shuliang

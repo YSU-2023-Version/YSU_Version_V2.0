@@ -48,14 +48,14 @@ void ThreadManager::Produce(){
             std::this_thread::yield();
         }
         auto t3 = std::chrono::high_resolution_clock::now();
-        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
+        //！std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
 }
 
 void ThreadManager::Consume(){
-    cout<<"consume is run"<<endl;
+    //！cout<<"consume is run"<<endl;
     while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
@@ -65,8 +65,8 @@ void ThreadManager::Consume(){
             condition.wait(lock);
         }
         p_armor_detector_ -> LoadImage(buffer[j]);
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
+        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
         // std::promise<Point2f> shoot;
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
@@ -78,8 +78,8 @@ void ThreadManager::Consume(){
             j = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
-        std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
-        std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
+        //！std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+        //！std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
 
 }
@@ -89,6 +89,7 @@ void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_
     {
       // p_communication_->ref_amorAttackMsg(p_communication_->Infantry.amorAttackmsg.yawErr, p_communication_->Infantry.amorAttackmsg.pitchErr,0, p_communication_->Infantry.amorAttackmsg.shootFlag, p_communication_->Infantry.amorAttackmsg.holderflag, true);
         p_communication_->communication(p_communication_ -> Infantry);
+
     }
 
 

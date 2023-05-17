@@ -110,6 +110,14 @@ public:
     }Infantry_Struct;
     Infantry_Struct Infantry;
 
+     typedef struct {
+        float yaw_angle;
+        float yaw_speed;
+        float pit_angle;
+        float pit_speed;
+    }McuData;  //从电控那边返回的数据
+    McuData mcu_data;
+
     uint8_t Get_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength, unsigned char ucCRC8);
     uint32_t Verify_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);
     void Append_CRC8_Check_Sum(unsigned char *pchMessage, unsigned int dwLength);

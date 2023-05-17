@@ -15,7 +15,7 @@ int CameraManager::InitCamera()
 
     iplImage = NULL;
     channel=3;
-    explore_time=6000;
+    explore_time=9000;
     picWidth=960;
     picHeight=720;
     error_num=0;
@@ -68,7 +68,7 @@ int CameraManager::InitCamera()
     CameraPlay(hCamera);
 
     CameraSetAeState(hCamera,FALSE);//设置为手动曝光模式
-    CameraSetExposureTime(hCamera,6000); //曝光时间，单位为微妙    1秒=1000毫秒=1000微妙  曝光时间是快门开始到关闭的时间  5000微妙，1s大概采200次
+    CameraSetExposureTime(hCamera,9000); //曝光时间，单位为微妙    1秒=1000毫秒=1000微妙  曝光时间是快门开始到关闭的时间  5000微妙，1s大概采200次
 
 #if  1
 

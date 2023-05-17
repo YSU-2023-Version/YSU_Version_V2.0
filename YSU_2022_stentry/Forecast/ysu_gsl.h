@@ -22,7 +22,7 @@
 using namespace std;
 
 //回归计算历史值数量
-#define N      7    /* number of data points to fit */
+//#define N      7    /* number of data points to fit */
 // #define TMAX   (3.0)  /* time variable in [0,TMAX] */
 
 struct data {
@@ -36,7 +36,7 @@ struct ysugsl
 {
 public:
     const gsl_multifit_nlinear_type *T = gsl_multifit_nlinear_trust;
-    const size_t n = N;
+    const size_t n = 7;//N
     const size_t p = 3;//
 
     gsl_multifit_nlinear_workspace *w;//workspace

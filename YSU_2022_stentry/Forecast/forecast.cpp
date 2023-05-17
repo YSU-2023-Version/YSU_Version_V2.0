@@ -12,7 +12,15 @@
 #include "Main/headfiles.h"
 #include "Forecast/forecast.h"
 #include "Timer/Timer.h"
-#include<gsl/gsl_multifit.h>
+#include <gsl/gsl_blas.h>
+
+#include <gsl/gsl_matrix.h> // 包含GSL库中的矩阵相关数据结构和函数
+#include <gsl/gsl_vector.h> // 包含GSL库中的向量相关数据结构和函数
+#include <gsl/gsl_multifit.h> // 包含GSL库中的多项式拟合和线性回归相关函数
+
+#include<gsl_permutation.h>
+#include <gsl/gsl_linalg.h>
+
 //#define DEBUG 1
 #define max_time 60000
 //60000
@@ -108,11 +116,15 @@ Forecast::Forecast()
 {};
 //cv::KalmanFilter KF(stateNum, measureNum, 0) ;
 Kalman kalman_p;
-Kalman kalman_v;
+Kalman kalman_t;
+Kalman kalman_x1;
+Kalman kalman_x2;
 void Forecast::Init()
 {
     kalman_p.Kalman_init();
-    kalman_v.Kalman_init();
+    kalman_t.Kalman_init();
+    kalman_x1.Kalman_init();
+    kalman_x2.Kalman_init();
 //    Kalman_init(&KF);
 
     cout<<"forecast init begin"<<endl;
@@ -193,8 +205,10 @@ void Forecast::Init()
      if(original[0]==Point2f(0,0)&&original[1]==Point2f(0,0)&&original[2]==Point2f(0,0)&&original[3]==Point2f(0,0))
      {   //当前帧未发现目标
          lost_aim_num++;
+
          if(lost_aim_max==lost_aim_num)//超过max帧未发现目标则认为是丢失目标，清楚历史记录
          {
+             //cout<<"                lost_aim: "<<lost_aim_num<<endl;
           record_history.clear();
           lost_aim_num=0;
           last_result={Point2f(0,0),Point2f(0,0),Point2f(0,0),Point2f(0,0)};
@@ -212,7 +226,7 @@ void Forecast::Init()
           //cout<<"                   \n      record_history_time:"<<record_history[record_history.size()-1].time<<endl;
           if(abs(record_history[record_history.size()-2].time-record_history[record_history.size()-1].time)>max_time-200)
               {
-                  record_history.clear();
+                  //record_history.clear();
                   cout<<"                   h\nh\nhhhhh\nh\nh"<<endl;
               }
       }
@@ -239,14 +253,14 @@ void Forecast::Init()
 
 
 
-      cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
+      //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
       if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
       {
         result.clear();
-
-
+        lost_aim_num=0;
         //预测Api，仅针对中心点进行预测。
         get_forecast();
+        result_center=kalman_p.Kalman_filter(result_center);
         //Point2f k_center=kalman_p.Kalman_filter(result_center);
         //result_center=k_center;
 
@@ -349,7 +363,7 @@ void Forecast::Init()
 //       line(show,result_limited[3],result_limited[0],Scalar(255,255,0),1);
 
 
-       cout<<"  \n\n\n\n                   result:"<<result.size()<<"\n\n\n";
+       //cout<<"  \n\n\n\n                   result:"<<result.size()<<"\n\n\n";
        line(show,result[0],result[1],Scalar(0,0,254),2);
        line(show,result[1],result[2],Scalar(0,0,254),2);
        line(show,result[2],result[3],Scalar(0,0,254),2);
@@ -379,53 +393,65 @@ void Forecast::Init()
 }
 double Forecast::my_gsl(data d, double aim_time)
 {
-    int time_resize=100;
-    const size_t n=d.n;//数据点数目
-    const size_t p=3;//多项式的次数
-    vector<double>t(n);
-    vector<double>y(n);
-    aim_time/=time_resize;
-//    double x[n]={1.0,2.0,3.0};
-//    double y[n]={1.0,4.0,9.0};
-    //cout<<"\n\n                                     x:";
-    for(int i=0;i<n;i++)
-    {
-        t[i]=d.t[i]/time_resize;
-        y[i]=d.y[i];
-        cout<<i<<":"<<t[i]<<endl;
-    }
-    gsl_matrix *T = gsl_matrix_alloc(n,p);
+    int time_resize=1;
+    const size_t n = d.n; // 样本数量
+    const size_t p = 3; // 参数数量
+    //double x[n] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
+    //double y[n] = {1.2, 2.1, 3.1, 4.0, 5.2, 6.1, 7.0, 8.2, 9.1, 10.2};
+
+    // 构造设计矩阵和响应向量
+    gsl_matrix *T = gsl_matrix_alloc(n, p);
     gsl_vector *Y = gsl_vector_alloc(n);
-    gsl_vector *c = gsl_vector_alloc(p);
-    gsl_matrix *cov = gsl_matrix_alloc(p,p);
-    double chisq;
-
-    for(size_t i=0;i<n;i++)
-    {
-        double xi=t[i];
-
-        gsl_matrix_set(T,i,0,1.0);
-        gsl_matrix_set(T,i,1,xi);
-        gsl_matrix_set(T,i,2,xi*xi);
-        gsl_vector_set(Y,i,y[i]);
+    for (int i = 0; i < n; i++) {
+        double ti = d.t[i];
+        gsl_matrix_set(T, i, 0, ti * ti);
+        gsl_matrix_set(T, i, 1, ti);
+        gsl_matrix_set(T, i, 2, 1.0);
+        gsl_vector_set(Y, i, d.y[i]);
     }
 
-    gsl_multifit_linear_workspace *w = gsl_multifit_linear_alloc(n,p);
-    gsl_multifit_linear(T,Y,c,cov,&chisq,w);
-    gsl_multifit_linear_free(w);
-    cout<<"拟合二次函数："<<gsl_vector_get(c,0)<<"+"<<gsl_vector_get(c,1)<<"t+"<<gsl_vector_get(c,2)<<"t^2"<<endl;
-    double c0=gsl_vector_get(c,0);
-    double c1=gsl_vector_get(c,1);
-    double c2=gsl_vector_get(c,2);
+    // 构造正则化矩阵
+    double lambda = 0.01; // 正则化参数
+    gsl_matrix *R = gsl_matrix_alloc(p, p);
+    gsl_matrix_set_zero(R);
+    gsl_matrix_set(R, 0 , 0 ,lambda);
+    gsl_matrix_set(R, 1 , 1, lambda);
+    gsl_matrix_set(R, 2 , 2, lambda);
+
+    // 计算T^T T + lambda R
+    gsl_matrix *TtT = gsl_matrix_alloc(p, p);
+    gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, T, T, 0.0, TtT);
+    gsl_matrix_add(TtT, R);
+
+    // 计算X^T Y
+    gsl_vector *TtY = gsl_vector_alloc(p);
+    gsl_blas_dgemv(CblasTrans, 1.0, T, Y, 0.0, TtY);
+
+    // 解线性方程组 (X^T X + lambda R) beta = X^T Y
+    gsl_vector *beta = gsl_vector_alloc(p);
+    gsl_permutation *perm = gsl_permutation_alloc(p);
+    int signum;
+    gsl_linalg_LU_decomp(TtT, perm, &signum);
+    gsl_linalg_LU_solve(TtT, perm, TtY, beta);
+
+    // 输出结果
+
+    //std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
+    //std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
+    //std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
+    auto a=gsl_vector_get(beta, 0);
+    auto b=gsl_vector_get(beta, 1);
+    auto c=gsl_vector_get(beta, 2);
+    x_c1=to_string(a),x_c2=to_string(b),x_c3=to_string(c);
+    // 释放内存
     gsl_matrix_free(T);
-    gsl_matrix_free(cov);
     gsl_vector_free(Y);
-    gsl_vector_free(c);
-    //cout<<"r_c"<<c2*aim_time*aim_time+c1*aim_time+c0<<",";
-    x_c1=to_string(c2);
-    x_c2=to_string(c1);
-    x_c3=to_string(c0);
-    return c2*aim_time*aim_time+c1*aim_time+c0;
+    gsl_matrix_free(R);
+    gsl_matrix_free(TtT);
+    gsl_vector_free(TtY);
+    gsl_vector_free(beta);
+    gsl_permutation_free(perm);
+    return a*aim_time*aim_time+b*aim_time+c;
 
 
 }
@@ -436,6 +462,9 @@ double Forecast::my_gsl(data d, double aim_time)
      for(int i=0;i<record_history_size;i++)
      {//分别为t,x,y历史值赋值
         t[i]=record_history[i].time;
+//        Point kPreCenter=kalman_t.Kalman_filter(record_history[i].center);
+//        ft[0][i]=kPreCenter.x;
+//        ft[1][i]=kPreCenter.y;
         ft[0][i]=record_history[i].center.x;
         ft[1][i]=record_history[i].center.y;
      }
@@ -453,11 +482,13 @@ double Forecast::my_gsl(data d, double aim_time)
 //    //****
      //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
      aim_time+=pre_time;
-     cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
+     //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //result_center=Point2f(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));
      result_center=Point2f(my_gsl(d[0],aim_time),my_gsl(d[1],aim_time));
 
 }
+
+
 
 
 //void Forecast::get_forecast( )

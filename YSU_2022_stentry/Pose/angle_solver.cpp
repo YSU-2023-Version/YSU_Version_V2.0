@@ -33,7 +33,7 @@ void AngleSolver::InitAngle()
     rVec = cv::Mat::zeros(3,1,CV_64FC1);
     tVec = cv::Mat::zeros(3,1,CV_64FC1);
     // 迭代法重力补偿初始化
-    gaf_solver = std::make_shared<rmoss_projectile_motion::GafProjectileSolver>(15, 0.01);
+    gaf_solver = std::make_shared<rmoss_projectile_motion::GafProjectileSolver>(25, 0.01);
 	projectile_tansformoss_tool = std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
 }
 
@@ -65,11 +65,14 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     double z_pos=tVec.at<double>(2,0)/1000;
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
     // 重力补偿得到结果
-
+ gra_t=distance_3d/BULLETFIRE_V;
+ _yErr = _yErr-(CAM_SUPPORT_DIS+4.9*gra_t*gra_t)*0.001;
+    //！std::cout << "pitch_before=" << _yErr << std::endl;
+    //！std::cout << "yaw_before=" << _xErr << std::endl;
     projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[1], p_y_err[0]);
     // 根据重力补偿的demo.cpp单位进行调整
-    p_y_err[0] = p_y_err[0] * 180 / CV_PI;
-    p_y_err[1] = p_y_err[1] * 180 / CV_PI;
+    p_y_err[0] = p_y_err[0] * 180 / CV_PI+5;
+    p_y_err[1] = -p_y_err[1]*180/CV_PI;
 
 #ifdef DEBUG
     std::cout<<"distance= " << distance_3d << std::endl;
@@ -104,8 +107,8 @@ void AngleSolver::P4P_solver()
     x_pitch = -atan(tan_pitch) * 180 / CV_PI;
     y_yaw = atan(tan_yaw) * 180 / CV_PI;
 
-    cout<<"x_pitch"<<x_pitch<<endl;
-    cout<<"y_yaw"<<y_yaw<<endl;
+    //！cout<<"x_pitch"<<x_pitch<<endl;
+    //！cout<<"y_yaw"<<y_yaw<<endl;
 }
 
 void AngleSolver::gravity_comp()
