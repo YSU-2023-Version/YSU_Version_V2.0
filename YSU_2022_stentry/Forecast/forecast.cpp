@@ -21,7 +21,7 @@
 #include<gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 #define max_time 60000
 //60000
 Mat show;
