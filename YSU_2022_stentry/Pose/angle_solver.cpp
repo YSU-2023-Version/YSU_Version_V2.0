@@ -1,6 +1,6 @@
 #include "Main/headfiles.h"
 #include "Pose/angle_solver.h"
-
+#include <Kalman/kalman.h>
 #define DEBUG // 打开调试模式，输出yam轴pitch轴误差
 
 AngleSolver::AngleSolver()
@@ -43,7 +43,7 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     if(!(object_armor_points_[0] == Point2f(0, 0) && object_armor_points_[1] == Point2f(0, 0) && object_armor_points_[2] == Point2f(0, 0) && object_armor_points_[3] == Point2f(0, 0)))
     {
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
-    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
+    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+5;
     _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
 
     //cout<<"_xErr:"<<_xErr<<endl;
@@ -52,6 +52,7 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     //gravity_comp(); // 之前的重力补偿
     if(_yErr < 15 && _yErr > -15)
     {
+        cout<<"hhhhhhhhhh\n\n\n\n\n\nhhhh\n\n\nhhhh\n";
         p_y_err[0] = _xErr;
         p_y_err[1] = _yErr;
     }
@@ -75,9 +76,10 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
     p_y_err[1] = -p_y_err[1]*180/CV_PI + 7;
 
 #ifdef DEBUG
-    std::cout<<"distance= " << distance_3d << std::endl;
-    std::cout << "pitch=" << p_y_err[1] << std::endl;
-    std::cout << "yaw=" << p_y_err[0] << std::endl;
+    //std::cout<<"distance= " << distance_3d << std::endl;
+    //std::cout << "pitch=" << p_y_err[1] << std::endl;
+    //std::cout << "yaw=" << p_y_err[0] << std::endl;
+
 #endif // DEBUG
 
     shoot=1;
@@ -88,6 +90,8 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
         p_y_err[1] = 0;//top_min=-19
         shoot=0;
     }
+
+
     return p_y_err;
 }
 int AngleSolver::shoot_get()
@@ -120,6 +124,7 @@ void AngleSolver::gravity_comp()
 //       p_y_err[1] = _yErr;
         p_y_err[1] = _yErr-(CAM_SUPPORT_DIS+4.9*gra_t*gra_t)*0.001;
         //p_y_err[1] = _yErr-(BULLETFIRE_V*(distance_3d/BULLETFIRE_V)*(CAM_SUPPORT_DIS/distance_3d)+0.5*9.8*gra_t*gra_t);
+
     }
     else
     {

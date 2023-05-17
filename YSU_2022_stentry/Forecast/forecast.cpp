@@ -21,7 +21,7 @@
 #include<gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 #define max_time 60000
 //60000
 Mat show;
@@ -209,6 +209,7 @@ void Forecast::Init()
          if(lost_aim_max==lost_aim_num)//超过max帧未发现目标则认为是丢失目标，清楚历史记录
          {
              //cout<<"                lost_aim: "<<lost_aim_num<<endl;
+             //cout<<"                lost_aim: "<<lost_aim_num<<endl;
           record_history.clear();
           lost_aim_num=0;
           last_result={Point2f(0,0),Point2f(0,0),Point2f(0,0),Point2f(0,0)};
@@ -227,7 +228,7 @@ void Forecast::Init()
           if(abs(record_history[record_history.size()-2].time-record_history[record_history.size()-1].time)>max_time-200)
               {
                   //record_history.clear();
-                  cout<<"                   h\nh\nhhhhh\nh\nh"<<endl;
+                  //cout<<"                   h\nh\nhhhhh\nh\nh"<<endl;
               }
       }
       time_temp=time_temp%max_time;
@@ -254,11 +255,13 @@ void Forecast::Init()
 
 
       //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
+      //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
       if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
       {
         result.clear();
         lost_aim_num=0;
         //预测Api，仅针对中心点进行预测。
+        kalman_p.Kalman_filter(record_history[record_history.size()-1].center);
         get_forecast();
         result_center=kalman_p.Kalman_filter(result_center);
         //Point2f k_center=kalman_p.Kalman_filter(result_center);
@@ -388,7 +391,7 @@ void Forecast::Init()
        cout<<"result.center"<<Point2f((result[0].x+result[1].x+result[2].x+result[3].x)/4,(result[0].y+result[1].y+result[2].y+result[3].y)/4)<<endl;
        imshow("forecast",show);
        //imshow("k_F",show);
-
+       imwrite("/home/robomaster/qt_workspace/picture/"+to_string(time)+".jpg",show);
        waitKey(1);
 #endif
         //记录历史预测结果，用于混合赋权输出最终结果。通过回归函数预测已经足够顺滑，故不需要了。上机运行一下，不报错就删掉
@@ -450,6 +453,9 @@ double Forecast::my_gsl(data d, double aim_time)
     //std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
     //std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
     //std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
+    //std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
+    //std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
+    //std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
     auto a=gsl_vector_get(beta, 0);
     auto b=gsl_vector_get(beta, 1);
     auto c=gsl_vector_get(beta, 2);
@@ -493,6 +499,7 @@ double Forecast::my_gsl(data d, double aim_time)
 //    //****
      //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
      aim_time+=pre_time;
+     //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //result_center=Point2f(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));
      result_center=Point2f(my_gsl(d[0],aim_time),my_gsl(d[1],aim_time));

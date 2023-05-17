@@ -94,7 +94,8 @@ void ThreadManager::Consume(){
 
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
         // debug
-        // p_armor_detector_ -> Show();
+         p_armor_detector_ -> Show();
+         //p_armor_detector_ ->Show(p_communication_->Infantry.amorAttackmsg.yawErr,p_communication_->Infantry.amorAttackmsg.pitchErr);
         //p_armor_detector_ -> baocun();
         if( (++j) % 30 == 0 )
         {
