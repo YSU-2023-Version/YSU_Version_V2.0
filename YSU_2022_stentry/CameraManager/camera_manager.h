@@ -9,13 +9,13 @@
 class CameraManager
 {
 public:
-    VideoCapture capture;
+    cv::VideoCapture capture;
     CameraManager();
     void SetExplore(int explore);
     void SetPicSize(int height,int width);
     int InitCamera();
     Mat ReadImage();
-
+    bool isOpen();
 private:
     Mat                     Iimag;
     Mat                     imag;

@@ -109,6 +109,11 @@ void CameraManager::SetPicSize(int height,int width)
 
 }
 
+
+bool CameraManager::isOpen(){
+    return this->iStatus;
+}
+
 Mat CameraManager::ReadImage()
 {   //cout<<"CameraConnectTest:"<<CameraConnectTest(hCamera)<<endl;
 
@@ -137,7 +142,7 @@ Mat CameraManager::ReadImage()
 #endif
     //注释下列代码
 #ifndef read_from_avi
-        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,100) == CAMERA_STATUS_SUCCESS)
+        if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,1000) == CAMERA_STATUS_SUCCESS)
         {//摄像头连接成功，返回读图结果。
             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
 
@@ -145,7 +150,7 @@ Mat CameraManager::ReadImage()
             cvSetData(iplImage,g_pRgbBuffer,sFrameInfo.iWidth*channel);//此处只是设置指针，无图像块数据拷贝，不需担心转换效率
             //以下两种方式都可以显示图像或者处理图像
  
-           Iimag=cv::cvarrToMat(iplImage);
+            Iimag=cv::cvarrToMat(iplImage);
    
             //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
             //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
@@ -166,6 +171,35 @@ Mat CameraManager::ReadImage()
 //        InitCamera();
 //        return sham_img;
     }
+//         if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,500) == CAMERA_STATUS_SUCCESS)
+//         {//摄像头连接成功，返回读图结果。
+//             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
+
+//             iplImage = cvCreateImageHeader(cvSize(sFrameInfo.iWidth,sFrameInfo.iHeight),IPL_DEPTH_8U,channel);
+//             cvSetData(iplImage,g_pRgbBuffer,sFrameInfo.iWidth*channel);//此处只是设置指针，无图像块数据拷贝，不需担心转换效率
+//             //以下两种方式都可以显示图像或者处理图像
+
+//             Iimag=cv::cvarrToMat(iplImage);
+
+//             //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
+//             //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
+//             CameraReleaseImageBuffer(hCamera,pbyBuffer);
+//             //cout<<"cols"<<Iimag.cols<<endl;
+
+//             return Iimag;
+//         }
+//     else{
+// //        cout<<"warning:camera loading failed..."<<endl;//摄像头掉线保护，返回欺骗图
+// //        error_num++;
+// //        cout<<"                                         \n\n error_num:  "<<error_num<<endl;
+// //        if(error_num>20)
+// //        {
+// //            int a=0;
+// //            cout<<1/a;
+// //        }
+// //        InitCamera();
+// //        return sham_img;
+//     }
 #endif
 
 }

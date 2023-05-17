@@ -209,6 +209,7 @@ void Forecast::Init()
          if(lost_aim_max==lost_aim_num)//超过max帧未发现目标则认为是丢失目标，清楚历史记录
          {
              //cout<<"                lost_aim: "<<lost_aim_num<<endl;
+             //cout<<"                lost_aim: "<<lost_aim_num<<endl;
           record_history.clear();
           lost_aim_num=0;
           last_result={Point2f(0,0),Point2f(0,0),Point2f(0,0),Point2f(0,0)};
@@ -253,6 +254,7 @@ void Forecast::Init()
 
 
 
+      //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
       //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
       if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
       {
@@ -364,7 +366,7 @@ void Forecast::Init()
 //       line(show,result_limited[3],result_limited[0],Scalar(255,255,0),1);
 
 
-       cout<<"  \n\n\n\n                   result:"<<result.size()<<"\n\n\n";
+       //cout<<"  \n\n\n\n                   result:"<<result.size()<<"\n\n\n";
        line(show,result[0],result[1],Scalar(0,0,254),2);
        line(show,result[1],result[2],Scalar(0,0,254),2);
        line(show,result[2],result[3],Scalar(0,0,254),2);
@@ -412,7 +414,7 @@ double Forecast::my_gsl(data d, double aim_time)
     }
 
     // 构造正则化矩阵
-    double lambda = 1000; // 正则化参数
+    double lambda = 0.5; // 正则化参数
     gsl_matrix *R = gsl_matrix_alloc(p, p);
     gsl_matrix_set_zero(R);
     gsl_matrix_set(R, 0 , 0 ,lambda);
@@ -437,6 +439,9 @@ double Forecast::my_gsl(data d, double aim_time)
 
     // 输出结果
 
+    //std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
+    //std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
+    //std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
     //std::cout << "a: " << gsl_vector_get(beta, 0) << std::endl;
     //std::cout << "b: " << gsl_vector_get(beta, 1) << std::endl;
     //std::cout << "c: " << gsl_vector_get(beta, 2) << std::endl;
@@ -483,6 +488,7 @@ double Forecast::my_gsl(data d, double aim_time)
 //    //****
      //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
      aim_time+=pre_time;
+     //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //result_center=Point2f(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));
      result_center=Point2f(my_gsl(d[0],aim_time),my_gsl(d[1],aim_time));

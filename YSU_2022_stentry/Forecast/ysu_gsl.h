@@ -22,8 +22,7 @@
 using namespace std;
 
 //回归计算历史值数量
-//#define N 7
-/* number of data points to fit */
+//#define N      7    /* number of data points to fit */
 // #define TMAX   (3.0)  /* time variable in [0,TMAX] */
 
 struct data {

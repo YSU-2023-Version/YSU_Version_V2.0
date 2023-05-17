@@ -15,7 +15,21 @@ ThreadManager::ThreadManager():
     j(0)
 {}
 
+void ThreadManager::InitThreadManager(){
+    std::string xml_path = "../xml_path/thread.xml";
+    cv::FileStorage fr;
+    fr.open(xml_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        std::cout << "armor_xml floading failed..." << std::endl;
+        fr=cv::FileStorage(xml_path, cv::FileStorage::READ);
+        fr.open(xml_path, cv::FileStorage::READ);
+    }
+    fr["FPS"] >> FPS_count_; // 读取fps值
+    this->base_time_ = 1000 / FPS_count_; // 时间的单位是ms
+}
+
 void ThreadManager::Init(){
+    this->InitThreadManager();
     p_camera_manager_ -> InitCamera();
     p_armor_detector_ -> InitArmor();
     p_communication_ -> InitCom();
@@ -40,7 +54,7 @@ void ThreadManager::Produce(){
         }
         auto t2 = std::chrono::high_resolution_clock::now();
         // 稳定帧率每秒100帧
-        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        int time = base_time_ - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
         // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
@@ -48,14 +62,14 @@ void ThreadManager::Produce(){
             std::this_thread::yield();
         }
         auto t3 = std::chrono::high_resolution_clock::now();
-        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
+        //！std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
 }
 
 void ThreadManager::Consume(){
-    cout<<"consume is run"<<endl;
+    //！cout<<"consume is run"<<endl;
     while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
@@ -88,6 +102,8 @@ void ThreadManager::Consume(){
             j = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
+        //！std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+        //！std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
         //std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
         std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
@@ -102,7 +118,7 @@ void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_
         p_communication_->communication(p_communication_ -> Infantry);
         auto t2 = std::chrono::high_resolution_clock::now();
         // 稳定帧率每秒100帧
-        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
+        int time = base_time_ - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
         auto start_time = std::chrono::steady_clock::now();
         auto end_time = start_time + std::chrono::milliseconds(time);
         // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
@@ -110,8 +126,6 @@ void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_
             std::this_thread::yield();
         }
     }
-
-
 }
 
 

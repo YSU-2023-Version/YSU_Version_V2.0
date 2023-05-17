@@ -134,7 +134,9 @@ void Communication::InitCom(const std::string &device, mn::CppLinuxSerial::BaudR
 
 bool Communication::open()
 {
+
     this->serialport.Open();
+
     if(this->serialport.getState() == mn::CppLinuxSerial::State::OPEN)
         return true;
     else
@@ -187,41 +189,62 @@ void Communication::sendMsg()
     serialport.WriteBinary(writeVec);
 }
 
-/*
+
+#define RECV_MSG_LEN 25 //25个数据
+
 int Communication::recvMsg()
 {
+    cout<<"1"<<endl;
     std::vector<uint8_t> readVec;
     serialport.ReadBinary(readVec);
-
-    for(int i=0; i<=readVec.size()-16; i++){
+    cout<<"size="<<readVec.size()<<endl;//- RECV_MSG_LEN
+    for(int i=0; i<=readVec.size(); i++){
         if(readVec[i] == FrameHeader){
-            uint8_t readbuf[16];
-            for(int j=0; j<16; j++){
+            uint8_t readbuf[RECV_MSG_LEN];
+            for(int j=0; j< RECV_MSG_LEN; j++){
                 readbuf[j] = readVec[i+j];
             }
-            uint8_t verifybuf[16];
-            memcpy(verifybuf, readbuf, 16);
-            Append_CRC16_Check_Sum(verifybuf, 16);
-            if(readbuf[14] == verifybuf[14] && readbuf[15] == verifybuf[15]){
-                short_to_byte temp_data_s;
-                temp_data_s.data[0] = readbuf[6];
-                temp_data_s.data[1] = readbuf[7];
-                Infantry.shoot_speed = temp_data_s.s_data;
-                short_to_byte temp_data_y;
-                temp_data_y.data[0] = readbuf[8];
-                temp_data_y.data[1] = readbuf[9];
-                Infantry.controlSysmsg.yawAngle = temp_data_y.s_data;
-                short_to_byte temp_data_p;
-                temp_data_p.data[0] = readbuf[10];
-                temp_data_p.data[1] = readbuf[11];
-                Infantry.controlSysmsg.pitchAngle = temp_data_y.s_data;
+            uint8_t verifybuf[ RECV_MSG_LEN];
+            memcpy(verifybuf, readbuf,  RECV_MSG_LEN);
+            Append_CRC16_Check_Sum(verifybuf,  RECV_MSG_LEN);
+            //最后两位为校验位
+            if(readbuf[ RECV_MSG_LEN-2] == verifybuf[ RECV_MSG_LEN-2] && readbuf[ RECV_MSG_LEN-1] == verifybuf[ RECV_MSG_LEN-1]){
+                float_to_byte temp_data_s;
+                temp_data_s.data[0] = readbuf[8];
+                temp_data_s.data[1] = readbuf[9];
+                temp_data_s.data[2] = readbuf[10];
+                temp_data_s.data[3] = readbuf[11];
+                mcu_data.yaw_angle =  temp_data_s.f_data;
+
+                temp_data_s.data[0] = readbuf[12];
+                temp_data_s.data[1] = readbuf[13];
+                temp_data_s.data[2] = readbuf[14];
+                temp_data_s.data[3] = readbuf[15];
+                mcu_data.yaw_speed =  temp_data_s.f_data;
+
+                temp_data_s.data[0] = readbuf[16];
+                temp_data_s.data[1] = readbuf[17];
+                temp_data_s.data[2] = readbuf[18];
+                temp_data_s.data[3] = readbuf[19];
+                mcu_data.pit_angle =  temp_data_s.f_data;
+
+                temp_data_s.data[0] = readbuf[20];
+                temp_data_s.data[1] = readbuf[21];
+                temp_data_s.data[2] = readbuf[22];
+                temp_data_s.data[3] = readbuf[23];
+                mcu_data.pit_speed =  temp_data_s.f_data;
+
+                cout<<"yaw_angle"<< mcu_data.yaw_angle<<endl;
+                cout<<"yaw_speed"<< mcu_data.yaw_speed<<endl;
+                cout<<"pit_angle"<< mcu_data.yaw_angle<<endl;
+                cout<<"pit_speed"<< mcu_data.yaw_speed<<endl;
 
                 std::cout << "aim_mode: " << Infantry.aim_mode << std::endl;
             }
         }
     }
 }
-*/
+
 
 void Communication::UpdateData(double *p_y_err)
 {
@@ -250,7 +273,10 @@ void Communication::downflag()
 
 void Communication::communication(Infantry_Struct Infantry)
 {
+    cout<<"comst"<<endl;
     sendMsg();
+    recvMsg();
+     cout<<"rec"<<endl;
     int timedelay = 5;
     auto t1 = std::chrono::high_resolution_clock::now();
     while (1) {//电控使用闲时中断，需要有延迟。不知道为何，usleep()没用
