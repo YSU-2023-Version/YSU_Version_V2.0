@@ -23,9 +23,11 @@ class AutoAim{
 
     void init_auto_aim();
 
-    void detect_image2res(cv::Mat src_image_);
+    void detect_image2res(cv::Mat& src_image_);
 
-    cv::Point2f get_aim();
+    std::vector<cv::Point2f>& detect_track_armor(cv::Mat src_image_);
+
+    
 };
 
 #endif // !AUTOAIM_H

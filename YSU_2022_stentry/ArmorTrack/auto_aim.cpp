@@ -18,8 +18,17 @@ void AutoAim::init_auto_aim(){
         fr=cv::FileStorage(file_path,cv::FileStorage::READ);
         fr.open(file_path,cv::FileStorage::READ);
     }
-
-
-
+    this->armor_detector = new Yolov5("../model/model/opt-0625-001.xml", "../model/model/opt-0625-001.bin", 416, 416); // 创建yolov5detector对象
+    this->armor_detector.init_yolov5_detector();
     std::cout << "**    auto aim init done     **" << std::endl;
+}
+
+void update()
+
+/**
+ * @brief 逻辑主函数
+*/
+std::vector<cv::Point2f>& detect_track_armor(cv::Mat& src_image_){
+    detect_image2res(src_image_);
+
 }
