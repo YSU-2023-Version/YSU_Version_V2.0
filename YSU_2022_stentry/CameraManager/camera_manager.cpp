@@ -114,34 +114,6 @@ bool CameraManager::isOpen(){
     return this->iStatus;
 }
 
-/**
- *  读取相机图片
-*/
-bool CameraManager::read(cv::Mat &img) const {
-    if(!isOpen()) return false;
-    tSdkFrameHead head;
-    BYTE *buffer;
-    CameraGetImageBuffer(iStatus, &head, &buffer, 100);
-    img = cv::Mat(head.iHeight, head.iWidth, CV_8UC3);
-    CameraImageProcess(iStatus, buffer, img.data, &head);
-    CameraReleaseImageBuffer(iStatus, buffer);
-    return true;
-}
-/**
- * 读取相机图片，并且计算时间
-*/
-bool CameraManager::read(cv::Mat &img, double &timestamp_ms) const {
-    if(!isOpen()) return false;
-    tSdkFrameHead head;
-    BYTE *buffer;
-    CameraGetImageBuffer(iStatus, &head, &buffer, 100);
-    img = cv::Mat(head.iHeight, head.iWidth, CV_8UC3);
-    CameraImageProcess(iStatus, buffer, img.data, &head);
-    timestamp_ms = head.uiTimeStamp / 10.;
-    CameraReleaseImageBuffer(iStatus, buffer);
-    return true;
-}
-
 Mat CameraManager::ReadImage()
 {   //cout<<"CameraConnectTest:"<<CameraConnectTest(hCamera)<<endl;
 

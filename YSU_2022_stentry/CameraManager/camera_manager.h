@@ -15,8 +15,6 @@ public:
     void SetPicSize(int height,int width);
     int InitCamera();
     Mat ReadImage();
-    bool read(cv::Mat &img) const;
-    bool read(cv::Mat &img, double &timestamp_ms) const;
     bool isOpen();
 private:
     Mat                     Iimag;

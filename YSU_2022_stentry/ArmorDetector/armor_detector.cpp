@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -47,7 +47,7 @@ ArmorDetector::ArmorDetector()://  1
 void ArmorDetector::InitArmor()
 {
     //cout<<"装甲板检测初始化成功！"<<endl;
-    std::cout << "armor_detector init begin" << std::endl;
+    //！std::cout << "armor_detector init begin" << std::endl;
 
     std::string file_path="../xml_path/armor_limited.xml";
     cv::FileStorage fr;
@@ -116,7 +116,7 @@ void ArmorDetector::LoadImage(cv::Mat &frame)
  */
 void ArmorDetector::ScreenArmor(){
 #ifdef DEBUG
-    std::cout << "match_armors_.size():" << match_armors_.size() << std::endl;
+    //！std::cout << "match_armors_.size():" << match_armors_.size() << std::endl;
 #endif
 
     record_history_arr_num.emplace_back(match_armors_.size());//tuxiangzhong zhenshi jiance daode zhuangjiaban shuliang
@@ -246,6 +246,19 @@ void ArmorDetector::ClearAll(){
 /**
  * @brief 展示结果
 */
+void ArmorDetector::Show(double y_err,double p_err)
+{
+    String s="yaw:"+to_string(y_err)+",pitch:"+to_string(p_err);
+    putText(src_image_,s,Point(100,100),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2);
+    imshow("src",src_image_);
+    ofstream out1;
+      out1.open("/home/robomaster/qt_workspace/1.txt",ios::app);
+      if(!out1.is_open())
+          cout<<"文件打开失败\n文件打开失败\n文件打开失败\n文件打开失败\n";
+      out1<<to_string(y_err)+","+to_string(p_err)<<endl;
+      cout<<"文件打开成功\n文件打开成功\n文件打开成功\n文件打开成功\n";
+      out1.close();
+}
 void ArmorDetector::Show(){
 #ifdef DEBUG
   // imshow("dst",thre_image_);

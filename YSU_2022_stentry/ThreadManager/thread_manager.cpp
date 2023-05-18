@@ -62,14 +62,14 @@ void ThreadManager::Produce(){
             std::this_thread::yield();
         }
         auto t3 = std::chrono::high_resolution_clock::now();
-        std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
+        //！std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
 //        std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
     }
 
 }
 
 void ThreadManager::Consume(){
-    cout<<"consume is run"<<endl;
+    //！cout<<"consume is run"<<endl;
     while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
     {
         auto t1 = std::chrono::high_resolution_clock::now();
@@ -86,7 +86,7 @@ void ThreadManager::Consume(){
 //        puts("");
         p_armor_detector_ -> LoadImage(buffer[j]);
         locker[j] = false;
-        //p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
+        // p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor() )   );
         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j]  )  )   );
 
         p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
@@ -94,13 +94,16 @@ void ThreadManager::Consume(){
 
         // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
         // debug
-        // p_armor_detector_ -> Show();
+         p_armor_detector_ -> Show();
+         //p_armor_detector_ ->Show(p_communication_->Infantry.amorAttackmsg.yawErr,p_communication_->Infantry.amorAttackmsg.pitchErr);
         //p_armor_detector_ -> baocun();
         if( (++j) % 30 == 0 )
         {
             j = 0;
         }
         auto t2 = std::chrono::high_resolution_clock::now();
+        //！std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+        //！std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
         //std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
         std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
     }
