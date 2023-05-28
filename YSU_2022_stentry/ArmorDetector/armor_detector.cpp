@@ -100,11 +100,7 @@ void ArmorDetector::InitArmor()
 
 }
 
-void ArmorDetector::LoadImage(cv::Mat &frame)
-{
-    src_image_=frame;
-    src_image_copy=frame.clone();
-}
+
 
 /**
  * @brief 原代码取最左边的矩形，改进代码是取面积最大的+预测
@@ -278,7 +274,7 @@ void ArmorDetector::Show(){
  * @details yolov5识别器，处理完成之后的结果将存到match_armors_的vector中
  */
 void ArmorDetector::Yolov2Res(){
-    match_armors_ = this->yolov5_detector_->detect_yolov5(src_image_copy); // 模型推理到结果
+    match_armors_ = this->yolov5_detector_->detect_yolov5(src_image_); // 模型推理到结果
 }
 
 
@@ -288,7 +284,9 @@ void ArmorDetector::Yolov2Res(){
  * @param void
  * @brief 在初始化之后，每一次加载图片之后就执行一次识别过程，返回最终中心点坐标
 */
-vector<Point2f>& ArmorDetector::DetectObjectArmor(){
+#include<thread>
+vector<Point2f>& ArmorDetector::DetectObjectArmor(cv::Mat &frame){
+    src_image_ = frame;
     // old detector 老视觉识别已经弃用，现在用的深度学习识别
     Yolov2Res();                   // 调用yolo模型
     ScreenArmor();                 // 使用原来的装甲板筛选代码
@@ -301,8 +299,12 @@ vector<Point2f>& ArmorDetector::DetectObjectArmor(){
 */
 void ArmorDetector::baocun()
 {
-        imgname = "./debug_shortcut/"+to_string(f++) + ".jpg"; //输出文件名为 f.jpg, 保留在工程文件夹中
-        imwrite(imgname, src_image_);
+        auto writer = std::thread([&](){
+            imgname = "./debug_shortcut/"+to_string(f++) + ".jpg"; //输出文件名为 f.jpg, 保留在工程文件夹中
+            imwrite(imgname, src_image_);
+        });
+        writer.detach();
+
 }
 
 cv::RotatedRect ArmorDetector::boundingRRect(const cv::RotatedRect & left, const cv::RotatedRect & right){
@@ -337,11 +339,11 @@ void ArmorDetector::PerspectiveTransformation(){
     Perspective_Transformation_dst[1]=Point2d(64,0);
     Perspective_Transformation_dst[2]=Point2d(64,64);
     Perspective_Transformation_dst[3]=Point2d(0,64);
-    warpPerspective_dst = Mat::zeros(64, 64, src_image_copy.type());
-  //  warpPerspective_dst = Mat::zeros(100, 100, src_image_copy.type());
+    warpPerspective_dst = Mat::zeros(64, 64, src_image_.type());
+  //  warpPerspective_dst = Mat::zeros(100, 100, src_image_.type());
     warpPerspective_mat = getPerspectiveTransform(Perspective_Transformation_src, Perspective_Transformation_dst);
 #ifdef DEBUG
-    warpPerspective(src_image_copy, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
+    warpPerspective(src_image_, warpPerspective_dst, warpPerspective_mat, warpPerspective_dst.size());
     circle(src_image_, Perspective_Transformation_src[0], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
     circle(src_image_, Perspective_Transformation_src[1], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）
     circle(src_image_, Perspective_Transformation_src[2], 3, Scalar(0, 255, 0), -1);  // 画半径为1的圆(画点）

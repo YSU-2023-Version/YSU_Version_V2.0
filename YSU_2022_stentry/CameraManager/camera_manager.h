@@ -14,10 +14,10 @@ public:
     void SetExplore(int explore);
     void SetPicSize(int height,int width);
     int InitCamera();
-    Mat ReadImage();
+    void ReadImage(cv Mat& image);
     bool isOpen();
 private:
-    Mat                     Iimag;
+    // Mat                     Iimag;
     Mat                     imag;
     int                     iCameraCounts;
     int                     iStatus;
