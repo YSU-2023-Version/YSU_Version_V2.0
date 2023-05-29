@@ -3,7 +3,7 @@
 #include "Pose/angle_solver.h"
 #include  <time.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 
 //由于sort函数的第三参数不属于类内，因此需要使用全局变量，全局变量初始化区
 float ArmorDetector:: hero_zjb_ratio_min=3.9;
@@ -122,13 +122,14 @@ void ArmorDetector::ScreenArmor(){
     record_history_arr_num.emplace_back(match_armors_.size());//tuxiangzhong zhenshi jiance daode zhuangjiaban shuliang
     while(record_history_arr_num.size()>record_history_num)record_history_arr_num.erase(record_history_arr_num.begin());
 
-
     //de-装甲板闪烁。如果当前帧比上record_history_num帧中的wu_cha_yun_xu的装甲板数量少，则将上一帧结果加入当前帧
     int i=0;//
     for(vector<int>::iterator it=record_history_arr_num.begin();it!=record_history_arr_num.end();it++)
     {if(match_armors_.size()<*it)i++;}
-    if(i>wu_cha_yun_xu*record_history_num)match_armors_.emplace_back(*record_history_arr.end());//duanzan de diushi mu biao rengran jida
-
+    if(i>wu_cha_yun_xu*record_history_num)
+    {
+        match_armors_.emplace_back(*(record_history_arr.end() - 1));//duanzan de diushi mu biao rengran jida
+    }
     if(match_armors_.size() > 0){ // 如果当前帧有检测到目标
             if(match_armors_.size()!=1) // 如果当前帧检测到目标不唯一，则根据多目标优先算法进行排序。
             {
@@ -145,12 +146,14 @@ void ArmorDetector::ScreenArmor(){
 
                         return score1 > score2;
                     });
+
                }else if(hero_priority == 1){ // 优先历史帧
                     sort(match_armors_.begin(),match_armors_.end(),[](const DetectRect & rect1, const DetectRect & rect2)
                     {
                         int score1 = 0, score2 = 0;
                         for(int tmp = record_history_arr.size();tmp > 0;tmp --)
                         {(get_dis(record_history_arr[tmp-1].cen_p,rect1.cen_p)) < (get_dis(record_history_arr[tmp-1].cen_p,rect2.cen_p))?score1++:score2++;}
+
                         return score1 > score2;
                     });
                }else if(hero_priority == 2){ // 第一优先大装甲板，再二优先历史帧
@@ -174,6 +177,7 @@ void ArmorDetector::ScreenArmor(){
                     });
                 }
             }
+
         const int id = 0;
         // 由于换成了vector容器，所以必须先给一个初始值
         std::vector<cv::Point2f> vertices = {cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0), cv::Point2f(0, 0)};
@@ -193,6 +197,7 @@ void ArmorDetector::ScreenArmor(){
             ru = vertices[3];
             rd = vertices[2];
         }
+
         PerspectiveTransformation();//透视变换
 
 #ifdef DEBUG
@@ -217,6 +222,7 @@ void ArmorDetector::ScreenArmor(){
     //       }
         //记录输出结果，用于历史帧判断
         record_history_arr.emplace_back(match_armors_[id]);
+
         while(record_history_arr.size()>record_history_num)record_history_arr.erase(record_history_arr.begin());
 
         target_armor_point_set.clear();
@@ -224,6 +230,7 @@ void ArmorDetector::ScreenArmor(){
         target_armor_point_set.push_back(ru);
         target_armor_point_set.push_back(rd);
         target_armor_point_set.push_back(ld);
+
     }
     else
     {

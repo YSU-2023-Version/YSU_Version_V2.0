@@ -14,7 +14,7 @@ class AngleSolver
 public:
     AngleSolver();
     void InitAngle();
-    double * SolveAngle(vector<cv::Point2f>& object_armor_points_);
+    double * SolveAngle(vector<cv::Point2f>& object_armor_points_,double y_p_recv[4]);
     int shoot_get();
 
     vector<cv::Point3f> obj;
@@ -30,6 +30,8 @@ public:
     double p_y_err[2];
     void P4P_solver();
     void gravity_comp();
+    Point2f trajectory_simulation(Point2f aim,double v0,double angle); //弹道模拟
+    double gravity_compensation(Point2f aim, double v0);//重力补偿
 
 private:
     float y_yaw;
@@ -37,7 +39,7 @@ private:
 
     std::shared_ptr<rmoss_projectile_motion::GafProjectileSolver> gaf_solver; // 重力补偿
     std::shared_ptr<rmoss_projectile_motion::GimbalTransformTool> projectile_tansformoss_tool; // 重力补偿
-    
+
 };
 
 #endif // ANGLESOLVER_H

@@ -153,51 +153,100 @@ bool Communication::close()
 }
 
 //数据帧定义
+//void Communication::sendMsg()
+//{
+//    // buyao kan xiamian de nahang zhushi nashi bubin de xieyi
+//    // 数据ￄ1�7?                               固定ￄ1�7?                数据段长ￄ1�7? 包序ￄ1�7? CRC8  帧类ￄ1�7?                             yerr                perr               dis                  shoot    aim_mode                                    延迟时间      CRC16
+//    //uint8_t writeBuf[19] = {FrameHeader, 0x00, 0x0A, 0x00,   0x00,  FrameTypePC2MCU, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    (uint8_t)Infantry.aim_mode, 0x00, 0x00, 0x00, 0x00};
+//    uint8_t writeBuf[19] = {0xA1, 14, 0, 0x00, 0x00,   \
+//                            0x00, 0x00, 0x00, 0x00, \
+//                            0x00, 0x00, 0x00, 0x00,   \
+//                            0x00, 0x00, 0x00, 0x00,   \
+//                            0x00, 0x00};
+//    Append_CRC8_Check_Sum(writeBuf, 5);
+
+//    short_to_byte temp_data_y;
+//    temp_data_y.s_data = (short)(Infantry.amorAttackmsg.yawErr * 10);
+//    writeBuf[7] = temp_data_y.data[0];
+//    writeBuf[8] = temp_data_y.data[1];
+
+//    short_to_byte temp_data_p;
+//    temp_data_p.s_data = (short)(Infantry.amorAttackmsg.pitchErr * 10);
+//    writeBuf[9] = temp_data_p.data[0];
+//    writeBuf[10] = temp_data_p.data[1];
+
+//    short_to_byte temp_data_d;
+//    temp_data_d.s_data = (short)(Infantry.amorAttackmsg.distance * 10);
+//    writeBuf[11] = temp_data_d.data[0];
+//    writeBuf[12] = temp_data_d.data[1];
+
+//    writeBuf[13] = Infantry.amorAttackmsg.shootFlag;
+//    writeBuf[14] = Infantry.amorAttackmsg.holderFlag;
+
+//    Append_CRC16_Check_Sum(writeBuf, 19);
+
+//    std::vector<uint8_t> writeVec(writeBuf, writeBuf + 19);
+//    serialport.WriteBinary(writeVec);
+//}
 void Communication::sendMsg()
 {
+
     // buyao kan xiamian de nahang zhushi nashi bubin de xieyi
     // 数据ￄ1�7?                               固定ￄ1�7?                数据段长ￄ1�7? 包序ￄ1�7? CRC8  帧类ￄ1�7?                             yerr                perr               dis                  shoot    aim_mode                                    延迟时间      CRC16
     //uint8_t writeBuf[19] = {FrameHeader, 0x00, 0x0A, 0x00,   0x00,  FrameTypePC2MCU, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,    (uint8_t)Infantry.aim_mode, 0x00, 0x00, 0x00, 0x00};
-    uint8_t writeBuf[19] = {0xA1, 14, 0, 0x00, 0x00,   \
+    uint8_t writeBuf[21] = {0xA1, 14, 0, 0x00, 0x00,   \
                             0x00, 0x00, 0x00, 0x00, \
                             0x00, 0x00, 0x00, 0x00,   \
                             0x00, 0x00, 0x00, 0x00,   \
+                            0x00, 0x00, \
                             0x00, 0x00};
     Append_CRC8_Check_Sum(writeBuf, 5);
 
-    short_to_byte temp_data_y;
-    temp_data_y.s_data = (short)(Infantry.amorAttackmsg.yawErr * 10);
-    writeBuf[7] = temp_data_y.data[0];
-    writeBuf[8] = temp_data_y.data[1];
+    float_to_byte temp_data_y;
+    temp_data_y.f_data = Infantry.amorAttackmsg.yawErr;
+    writeBuf[5] = temp_data_y.data[0];
+    writeBuf[6] = temp_data_y.data[1];
+    writeBuf[7] = temp_data_y.data[2];
+    writeBuf[8] = temp_data_y.data[3];
 
-    short_to_byte temp_data_p;
-    temp_data_p.s_data = (short)(Infantry.amorAttackmsg.pitchErr * 10);
+    float_to_byte temp_data_p;
+    temp_data_p.f_data = Infantry.amorAttackmsg.pitchErr;
     writeBuf[9] = temp_data_p.data[0];
     writeBuf[10] = temp_data_p.data[1];
+    writeBuf[11] = temp_data_p.data[2];
+    writeBuf[12] = temp_data_p.data[3];
 
-    short_to_byte temp_data_d;
-    temp_data_d.s_data = (short)(Infantry.amorAttackmsg.distance * 10);
-    writeBuf[11] = temp_data_d.data[0];
-    writeBuf[12] = temp_data_d.data[1];
+    float_to_byte temp_data_d;
+    temp_data_d.f_data = Infantry.amorAttackmsg.distance;
+    writeBuf[13] = temp_data_d.data[0];
+    writeBuf[14] = temp_data_d.data[1];
+    writeBuf[15] = temp_data_d.data[2];
+    writeBuf[16] = temp_data_d.data[3];
 
-    writeBuf[13] = Infantry.amorAttackmsg.shootFlag;
-    writeBuf[14] = Infantry.amorAttackmsg.holderFlag;
+    writeBuf[17] = Infantry.amorAttackmsg.shootFlag;
+    cout<<endl;
+    printf("                  shoot:%d",Infantry.amorAttackmsg.shootFlag);
+    cout<<endl;
+    writeBuf[18] = Infantry.amorAttackmsg.holderFlag;
 
-    Append_CRC16_Check_Sum(writeBuf, 19);
-    
-    std::vector<uint8_t> writeVec(writeBuf, writeBuf + 19);
+    Append_CRC16_Check_Sum(writeBuf, 21);
+
+    std::vector<uint8_t> writeVec(writeBuf, writeBuf + 21);
     serialport.WriteBinary(writeVec);
 }
+
 
 
 #define RECV_MSG_LEN 25 //25个数据
 
 int Communication::recvMsg()
 {
-    cout<<"1"<<endl;
     std::vector<uint8_t> readVec;
     serialport.ReadBinary(readVec);
+
     cout<<"size="<<readVec.size()<<endl;//- RECV_MSG_LEN
+    //for(int i =0;i<readVec.size();i++)
+      //  printf("i=%d,0x%02x\n",i,readVec[i]);
     for(int i=0; i<=readVec.size(); i++){
         if(readVec[i] == FrameHeader){
             uint8_t readbuf[RECV_MSG_LEN];
@@ -210,39 +259,41 @@ int Communication::recvMsg()
             //最后两位为校验位
             if(readbuf[ RECV_MSG_LEN-2] == verifybuf[ RECV_MSG_LEN-2] && readbuf[ RECV_MSG_LEN-1] == verifybuf[ RECV_MSG_LEN-1]){
                 float_to_byte temp_data_s;
-                temp_data_s.data[0] = readbuf[8];
-                temp_data_s.data[1] = readbuf[9];
-                temp_data_s.data[2] = readbuf[10];
-                temp_data_s.data[3] = readbuf[11];
+                temp_data_s.data[0] = readbuf[7];
+                temp_data_s.data[1] = readbuf[8];
+                temp_data_s.data[2] = readbuf[9];
+                temp_data_s.data[3] = readbuf[10];
                 mcu_data.yaw_angle =  temp_data_s.f_data;
 
-                temp_data_s.data[0] = readbuf[12];
-                temp_data_s.data[1] = readbuf[13];
-                temp_data_s.data[2] = readbuf[14];
-                temp_data_s.data[3] = readbuf[15];
+                temp_data_s.data[0] = readbuf[11];
+                temp_data_s.data[1] = readbuf[12];
+                temp_data_s.data[2] = readbuf[13];
+                temp_data_s.data[3] = readbuf[14];
                 mcu_data.yaw_speed =  temp_data_s.f_data;
 
-                temp_data_s.data[0] = readbuf[16];
-                temp_data_s.data[1] = readbuf[17];
-                temp_data_s.data[2] = readbuf[18];
-                temp_data_s.data[3] = readbuf[19];
+                temp_data_s.data[0] = readbuf[15];
+                temp_data_s.data[1] = readbuf[16];
+                temp_data_s.data[2] = readbuf[17];
+                temp_data_s.data[3] = readbuf[18];
                 mcu_data.pit_angle =  temp_data_s.f_data;
 
-                temp_data_s.data[0] = readbuf[20];
-                temp_data_s.data[1] = readbuf[21];
-                temp_data_s.data[2] = readbuf[22];
-                temp_data_s.data[3] = readbuf[23];
+                temp_data_s.data[0] = readbuf[19];
+                temp_data_s.data[1] = readbuf[20];
+                temp_data_s.data[2] = readbuf[21];
+                temp_data_s.data[3] = readbuf[22];
                 mcu_data.pit_speed =  temp_data_s.f_data;
 
-                cout<<"yaw_angle"<< mcu_data.yaw_angle<<endl;
-                cout<<"yaw_speed"<< mcu_data.yaw_speed<<endl;
-                cout<<"pit_angle"<< mcu_data.yaw_angle<<endl;
-                cout<<"pit_speed"<< mcu_data.yaw_speed<<endl;
+//                cout<<"yaw_angle"<< mcu_data.yaw_angle<<endl;
+//                cout<<"yaw_speed"<< mcu_data.yaw_speed<<endl;
+//                cout<<"pit_angle"<< mcu_data.pit_angle<<endl;
+//                cout<<"pit_speed"<< mcu_data.pit_speed<<endl;
 
-                std::cout << "aim_mode: " << Infantry.aim_mode << std::endl;
+
+                //std::cout << "aim_mode: " << Infantry.aim_mode << std::endl;
             }
         }
     }
+    return readVec.size();
 }
 
 
@@ -250,8 +301,8 @@ void Communication::UpdateData(double *p_y_err)
 {
     Infantry.amorAttackmsg.yawErr=(float)p_y_err[0];
     Infantry.amorAttackmsg.pitchErr=(float)p_y_err[1];
-    std::cout<<"yaw:"<<Infantry.amorAttackmsg.yawErr<<std::endl;
-    std::cout<<"pitch:"<<Infantry.amorAttackmsg.pitchErr<<std::endl;
+    //std::cout<<"yaw:"<<Infantry.amorAttackmsg.yawErr<<std::endl;
+    //std::cout<<"pitch:"<<Infantry.amorAttackmsg.pitchErr<<std::endl;
 
 }
 
@@ -270,13 +321,57 @@ void Communication::downflag()
     Infantry.amorAttackmsg.holderFlag=1;
     cout<<"holderflag:"<<Infantry.amorAttackmsg.holderFlag<<endl;
 }
+void Communication::RecvMcuData(double out_mcu_data[4],bool& IsRecv)
+{
+
+    int readVec_size = recvMsg();
+
+    if(readVec_size == 0)
+    {
+        IsRecv = false;
+    }
+    else
+    {
+        out_mcu_data[0] = mcu_data.pit_angle;
+        out_mcu_data[1] = mcu_data.pit_speed;
+        out_mcu_data[2] = mcu_data.yaw_angle;
+        out_mcu_data[3] = mcu_data.yaw_speed;
+
+        IsRecv = true;
+    }
+
+//    int timedelay = 5;
+//    auto t1 = std::chrono::high_resolution_clock::now();
+//    while (1) {//电控使用闲时中断，需要有延迟。不知道为何，usleep()没用
+//        auto t2 = std::chrono::high_resolution_clock::now();
+//        std::chrono::duration<double, std::milli> elapsed = t2 - t1;
+//        if(elapsed.count() >= timedelay) break;
+//    }
+
+}
 
 void Communication::communication(Infantry_Struct Infantry)
 {
-    cout<<"comst"<<endl;
+//    sendMsg();
+//    //recvMsg();
+//     //cout<<"rec"<<endl;
+//    int timedelay = 5;
+//    auto t1 = std::chrono::high_resolution_clock::now();
+//    while (1) {//电控使用闲时中断，需要有延迟。不知道为何，usleep()没用
+//        auto t2 = std::chrono::high_resolution_clock::now();
+//        std::chrono::duration<double, std::milli> elapsed = t2 - t1;
+//        if(elapsed.count() >= timedelay) break;
+//    }
+
+//    recvMsg();
+//    //p_y_err[0] =p_y_recv[2]- p_y_err[0]+p_y_recv[3]*pre_time;
+//    double pre_time=+13;
+//    cout<<"\n                            error yaw "<<Infantry.amorAttackmsg.yawErr<<endl;
+//    Infantry.amorAttackmsg.yawErr=mcu_data.yaw_angle-Infantry.amorAttackmsg.yawErr+mcu_data.yaw_speed*pre_time;
+
     sendMsg();
-    recvMsg();
-     cout<<"rec"<<endl;
+    //cout<<"                             recv yaw "<<mcu_data.yaw_angle<<endl;
+    //cout<<"                             send yaw "<<Infantry.amorAttackmsg.yawErr<<endl;
     int timedelay = 5;
     auto t1 = std::chrono::high_resolution_clock::now();
     while (1) {//电控使用闲时中断，需要有延迟。不知道为何，usleep()没用

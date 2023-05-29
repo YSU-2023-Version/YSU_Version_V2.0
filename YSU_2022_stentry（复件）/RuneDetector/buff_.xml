@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<opencv_storage>
+<pretreatMode>1</pretreatMode><!--图像预处理模式，0：gray-hsv、1：通道相减和灰度二值化&-->
+<color_aim>0</color_aim><!--大幅颜色,0:Red,1:Blue-->
+<AIM_SON_CONTOURS_NUM>1</AIM_SON_CONTOURS_NUM><!--扇叶子轮廓限制-->
+<R_SON_CONTOURS_NUM>0</R_SON_CONTOURS_NUM><!--R子轮廓限制-->
+<NEIGHBORHOOD_SCALE_AIM>10</NEIGHBORHOOD_SCALE_AIM><!--扇叶邻域检测边长-->
+<MIN_R_CENTER>0.35</MIN_R_CENTER><!--R需要在图像中间，比例下限-->
+<MAX_R_CENTER>0.65</MAX_R_CENTER><!--R需要在图像中间，比例上限-->
+<DELAY_TIME>1.2</DELAY_TIME><!--预测时长（秒）-->
+<D_VELOCITY_SAME_MAX>10</D_VELOCITY_SAME_MAX><!--同速检测上限（像素/秒）-->
+<AREA_LIMIT_MIN>0.5</AREA_LIMIT_MIN><!--面积小于该值的前景被认为是噪点。（单位：src.rows）-->
+</opencv_storage>

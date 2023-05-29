@@ -1,7 +1,7 @@
 #include "Main/headfiles.h"
 #include "Pose/angle_solver.h"
 #include <Kalman/kalman.h>
-#define DEBUG // 打开调试模式，输出yam轴pitch轴误差
+// #define DEBUG // 打开调试模式，输出yam轴pitch轴误差
 
 AngleSolver::AngleSolver()
 {
@@ -34,25 +34,29 @@ void AngleSolver::InitAngle()
     tVec = cv::Mat::zeros(3,1,CV_64FC1);
     // 迭代法重力补偿初始化
     gaf_solver = std::make_shared<rmoss_projectile_motion::GafProjectileSolver>(25, 0.01);
-	projectile_tansformoss_tool = std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
+    projectile_tansformoss_tool = std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
 }
 
 
-double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
+double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_,double y_p_recv[4])
 {
     if(!(object_armor_points_[0] == Point2f(0, 0) && object_armor_points_[1] == Point2f(0, 0) && object_armor_points_[2] == Point2f(0, 0) && object_armor_points_[3] == Point2f(0, 0)))
     {
+        if(object_armor_points_[0] == Point2f(1, 0))
+        {
+            cout<<"                             114514"<<endl;
+        }
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
-    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360+5;
+    _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;//+5
     _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
 
     //cout<<"_xErr:"<<_xErr<<endl;
     //cout<<"_yErr:"<<_yErr<<endl;
 
-    //gravity_comp(); // 之前的重力补偿
-    if(_yErr < 15 && _yErr > -15)
+
+    //gravity_comp(); // 之前的重力补偿·
+    if(_yErr < 18 && _yErr > -18)
     {
-        cout<<"hhhhhhhhhh\n\n\n\n\n\nhhhh\n\n\nhhhh\n";
         p_y_err[0] = _xErr;
         p_y_err[1] = _yErr;
     }
@@ -61,29 +65,61 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
         p_y_err[0] = 0;
         p_y_err[1] = 0;
     }
+
+    p_y_err[0] = _xErr;
+    p_y_err[1] = _yErr;
+    //求距离
     double x_pos=tVec.at<double>(0,0)/1000;
     double y_pos=tVec.at<double>(1,0)/1000;
     double z_pos=tVec.at<double>(2,0)/1000;
     distance_3d=sqrt(x_pos*x_pos+y_pos*y_pos+z_pos*z_pos);
-    // 重力补偿得到结果
- gra_t=distance_3d/BULLETFIRE_V;
- _yErr = _yErr-(CAM_SUPPORT_DIS+4.9*gra_t*gra_t)*0.001;
-    //！std::cout << "pitch_before=" << _yErr << std::endl;
-    //！std::cout << "yaw_before=" << _xErr << std::endl;
-    projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[1], p_y_err[0]);
+    gra_t=distance_3d/BULLETFIRE_V;
+
+    //_yErr = _yErr-(CAM_SUPPORT_DIS+4.9*gra_t*gra_t)*0.001;
+    std::cout << "pitch_before=" << _yErr << std::endl;
+    std::cout << "yaw_before=" << _xErr << std::endl;
+
+    //projectile_tansformoss_tool->solve(x_pos, y_pos, z_pos, p_y_err[1], p_y_err[0]);
     // 根据重力补偿的demo.cpp单位进行调整
-    p_y_err[0] = p_y_err[0] * 180 / CV_PI + 5;
-    p_y_err[1] = -p_y_err[1]*180/CV_PI + 7;
+//    p_y_err[0] = p_y_err[0] * 180 / CV_PI + 0.8; //yaw
+//    p_y_err[1] = -p_y_err[1]*180/CV_PI + 2.5;  //pitch
+
+ //   gravity_comp();
+
+    shoot=1;
+    //5.23新的重力补偿  -> 0   往上-90 往下+90 角度制
+    cout<<"recv_pitch_angle:"<<y_p_recv[0]<<endl;
+    cout<<"                                     distance"<<distance_3d<<endl;
+    float aim_angle = (y_p_recv[0]+p_y_err[1])*CV_PI/180;
+    cout<<"                                  y_p_recv[0]"<<y_p_recv[0]<<endl;
+    cout<<"                                  p_y_err[1]"<<p_y_err[1]<<endl;
+    Point2f aim_pos = {(float)(cos(aim_angle)*distance_3d),(float)(sin(aim_angle)*distance_3d)};
+    cout<<"aim_pos"<<aim_pos<<endl;
+    //补偿后的角度
+    //double comp_angle=aim_angle;
+    double comp_angle=gravity_compensation(aim_pos,20);//小弹丸射速15m/s   英雄为20   //*****************************调初速度
+
+
+    p_y_err[0] = p_y_err[0]- 0.5 ;//-7.8 ;//yaw增加方向为左方向，伏视角逆时针方向   原0.6
+    p_y_err[1]+=(-comp_angle+aim_angle)*180/CV_PI + 2.5;//pitch
+
+    cout<<"                                    yaw"<<p_y_err[0]<<endl;
+    cout<<"                                  pitch"<<p_y_err[1]<<endl;
 
 #ifdef DEBUG
+    std::cout << "3.pitch_jiaodu=" << p_y_err[1] << std::endl;
+    std::cout << "2.yaw=" << p_y_err[0] << std::endl;
+    std::cout << "1.shoot=" << shoot << std::endl;
+    //cout<<"                                     comp_angle:"<<comp_angle<<endl;
+    //cout<<"                             aim_angle:"<<aim_angle<<endl;
+    cout<<"                             comp_angle-aim_angle:"<<comp_angle-aim_angle<<endl;
     //std::cout<<"distance= " << distance_3d << std::endl;
     //std::cout << "pitch=" << p_y_err[1] << std::endl;
     //std::cout << "yaw=" << p_y_err[0] << std::endl;
-
 #endif // DEBUG
-
-    shoot=1;
     }
+
+
     else
     {
         p_y_err[0] = 0;
@@ -96,7 +132,6 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_)
 }
 int AngleSolver::shoot_get()
 {
-   // cout<<"shoot:"<<shoot<<endl;
     return shoot;
 }
 
@@ -117,6 +152,9 @@ void AngleSolver::P4P_solver()
 
 void AngleSolver::gravity_comp()
 {
+
+
+//下面是旧版的重力补偿
     gra_t=distance_3d/BULLETFIRE_V;
     if(distance_3d>GRACOMP_DIS)
     {
@@ -131,4 +169,45 @@ void AngleSolver::gravity_comp()
         p_y_err[0] = _xErr;
         p_y_err[1] = _yErr;
     }
+}
+
+//弹道模拟 传入目标点，初速度，角度 模拟出打击点  需要调的参数为T G K 初速度 ，T为模拟的间隔时间 G为重力加速度 K为阻力系数
+//假如偏上 可以增大初速度，减小阻力   偏下 要减小初速度，增大阻力
+//v16.5  K0.001  -0.74  偏上
+//v16  K0.0015  -0.75  偏上
+Point2f AngleSolver::trajectory_simulation(Point2f aim,double v0,double angle) {
+#define T 0.01
+#define G 9.8
+#define K 0.0000001
+#define dp_size 0.05
+    Point2f v = {(float)(v0*cos(angle)),(float)(v0*sin(angle))};
+    Point2f a;
+    Point2f p = {0,0};
+    double temp_v2;
+    while (1) {
+        temp_v2 =sqrt( v.x * v.x + v.y * v.y);
+        a.x = (-K * v.x * temp_v2);
+        a.y = (-K * v.y * temp_v2 + G);//下面是y轴正方向，所以要+G
+        v += a * T;
+        p += v * T;
+        if (p.x > aim.x) return  { 0,p.y - aim.y }; //超过目标点则返回误差
+        if (v.x < 1) return  { 0,p.y - aim.y }; //return { p.x - aim.x,p.y - aim.y };
+    }
+}
+//重力补偿 传入目标点，初速度，返回实际打击角度
+double AngleSolver::gravity_compensation(Point2f aim, double v0) {
+    Point2f dp; //误差
+    Point2f temp_aim=aim;
+    double temp_angle;
+    for (int i = 0; i < 10; i++) {
+        temp_angle = atan(temp_aim.y / temp_aim.x);
+        dp = trajectory_simulation(aim, v0, temp_angle);
+        temp_aim -= dp;
+        if (dp.y<dp_size&&dp.y>-dp_size){
+            shoot=1;//可以发射
+            return temp_angle;
+        }
+    }
+   shoot=0; //十次迭代之后仍然没有找到目标说明打不到 不能发射
+    return temp_angle;
 }

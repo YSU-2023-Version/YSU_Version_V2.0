@@ -6,7 +6,7 @@
 
 #include "DeepLearning/yolov5.h"
 
-#define DEBUG
+//#define DEBUG
 #define WINDOW_NAME "res_show"
 
 float sigmoid_function(float a)
@@ -118,6 +118,9 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
 
     scale_x = (float)src_.cols / m_input_width;
     scale_y = (float)src_.rows / m_input_height;
+
+    cout <<"cols" <<  src_.cols << ", rows:" << src_.rows << endl;
+
     // 如果太大
     if(scale_x > 1 || scale_y > 1){
         max_scale = std::max(scale_x, scale_y);
@@ -217,14 +220,15 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             y_num = i / 26;
         } else {
             grid = 32;
-            x_num = i % 13;
+//            x_num = i % 13;
             y_num = i / 13;
         }
         // 获取框的置信度
         float demo[dims];
         int basic_pos = i * dims;
         float confidence = output_data[basic_pos + 8];
-        if(confidence >= 0.75) {
+
+        if(confidence >= 0.64) {
             DetectRect temp_rect;
             float x_1 = (output_data[basic_pos + 0] + x_num) * max_scale * grid;
             float y_1 = (output_data[basic_pos + 1] + y_num) * max_scale * grid;
@@ -252,15 +256,16 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             float color_p = output_data[box_color + basic_pos];
             // 如果最大的类别置信度过低，就舍去
 
-//            if(box_color ==  11) { // dead
-//                continue;
-//            }
+            if(box_color ==  11) { // dead
+                continue;
+            }
 //            if(box_color == 9){ // blue not
 //                continue;
 //            }
 //            if(box_color == 10){ // red not
 //                continue;
 //            }
+
 
             #ifdef DEBUG
             cv::circle(this->m_src_image, cv::Point(x_1, y_1), 3, cv::Scalar(0, 255, 0), 2);

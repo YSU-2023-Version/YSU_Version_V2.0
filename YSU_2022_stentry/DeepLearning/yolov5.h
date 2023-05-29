@@ -26,7 +26,7 @@
 #include "Main/headfiles.h"
 #include "Timer/Timer.h"
 
-// #define DEBUG // 调试模式
+#define DEBUG // 调试模式
 
 using namespace std;
 using namespace cv;

@@ -21,13 +21,13 @@
 #include<gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 #define max_time 60000
 //60000
 Mat show;
 Mat k_show;
 
-String x_c1="0",x_c2="0",x_c3="0";
+String x_c1="0",x_c2="0",x_c3="0",x_t="0";
 
 double getDistance(const Point2f &a,const Point2f &b)
 {
@@ -154,6 +154,7 @@ void Forecast::Init()
 
 
     record_history.clear();
+    pitch_history.clear();
     now=chuo();
     recording_interval=0;
     lost_aim_num=0;
@@ -165,10 +166,10 @@ void Forecast::Init()
     result.emplace_back(Point2f(0,0));
     result.emplace_back(Point2f(0,0));
     result.emplace_back(Point2f(0,0));
-    // last_result.emplace_back(Point2f(0,0));
-    // last_result.emplace_back(Point2f(0,0));
-    // last_result.emplace_back(Point2f(0,0));
-    // last_result.emplace_back(Point2f(0,0));
+     last_result.emplace_back(Point2f(0,0));
+     last_result.emplace_back(Point2f(0,0));
+     last_result.emplace_back(Point2f(0,0));
+     last_result.emplace_back(Point2f(0,0));
 
      t=(double*)malloc(sizeof(double)*record_history_size);
     for(int i=0;i<2;i++){
@@ -194,7 +195,7 @@ void Forecast::Init()
 
 
  vector<Point2f>& Forecast::
- forcast(vector<Point2f> &original,double time)
+ forcast(vector<Point2f> &original,double time,double y_p_recv[4])
  {
 #ifdef DEBUG
     show=Mat(1024,1080,CV_8UC3,Scalar(0,0,0));//观测结果，预测结果可视化
@@ -205,17 +206,18 @@ void Forecast::Init()
      if(original[0]==Point2f(0,0)&&original[1]==Point2f(0,0)&&original[2]==Point2f(0,0)&&original[3]==Point2f(0,0))
      {   //当前帧未发现目标
          lost_aim_num++;
-
          if(lost_aim_max==lost_aim_num)//超过max帧未发现目标则认为是丢失目标，清楚历史记录
          {
              //cout<<"                lost_aim: "<<lost_aim_num<<endl;
              //cout<<"                lost_aim: "<<lost_aim_num<<endl;
           record_history.clear();
+          pitch_history.clear();
           lost_aim_num=0;
           last_result={Point2f(0,0),Point2f(0,0),Point2f(0,0),Point2f(0,0)};
           kalman_p.Kalman_init();
           return original;
          }else{
+             original[0].x++;
              return  original;
          }
 
@@ -224,11 +226,9 @@ void Forecast::Init()
       int time_temp=time;
       if(record_history.size()>1)
       {
-          //cout<<"                   \n      record_history_time:"<<record_history[record_history.size()-1].time<<endl;
           if(abs(record_history[record_history.size()-2].time-record_history[record_history.size()-1].time)>max_time-200)
               {
                   //record_history.clear();
-                  //cout<<"                   h\nh\nhhhhh\nh\nh"<<endl;
               }
       }
       time_temp=time_temp%max_time;
@@ -249,7 +249,9 @@ void Forecast::Init()
       if(recording_interval>=record_history_interval_max){
           recording_interval=0;
           record_history.emplace_back(now);
-          while(record_history.size()>record_history_size){record_history.erase(record_history.begin());}
+          pitch_history.emplace_back(y_p_recv[2]);
+
+          while(record_history.size()>record_history_size){record_history.erase(record_history.begin());pitch_history.erase(pitch_history.begin());}
       }
 
 
@@ -258,12 +260,14 @@ void Forecast::Init()
       //cout<<"                          record_history "<<record_history.size()<<" "<<record_history_interval_max<<endl;
       if(record_history.size()>=record_history_size)//记录数量达到观测需要再进行预测
       {
+          return original;
         result.clear();
         lost_aim_num=0;
         //预测Api，仅针对中心点进行预测。
-        kalman_p.Kalman_filter(record_history[record_history.size()-1].center);
-        get_forecast();
-        result_center=kalman_p.Kalman_filter(result_center);
+        //kalman_p.Kalman_filter(record_history[record_history.size()-1].center);
+        //get_forecast();
+        //result_center=kalman_p.Kalman_filter(result_center);
+
         //Point2f k_center=kalman_p.Kalman_filter(result_center);
         //result_center=k_center;
 
@@ -275,9 +279,9 @@ void Forecast::Init()
 //            if((record_history[i].time-record_history[i-1].time)!=0)
 //            {
 //                speeds.emplace_back(
-//                            Point(abs(record_history[i].center.x-record_history[i-1].center.x)/ abs(record_history[i].time-record_history[i-1].time),
-//                                 (abs(record_history[i].center.y-record_history[i-1].center.y)/ abs(record_history[i].time-record_history[i-1].time)
-//                        )));
+//                            Point2f((float)((record_history[i].center.x-record_history[i-1].center.x)/ (record_history[i].time-record_history[i-1].time)),
+//                                 (float)((record_history[i].center.y-record_history[i-1].center.y)/ (record_history[i].time-record_history[i-1].time)))
+//                        );
 //            }
 //        }
 //        for(int i=0;i<speeds.size();i++)
@@ -293,12 +297,46 @@ void Forecast::Init()
 //        {
 //            speed={0,0};
 //        }
-//        speed=kalman_v.Kalman_filter(speed);
-//        result_center=Point(record_history[record_history.size()-1].center.x,record_history[record_history.size()-1].center.y);
-//        result_center=kalman_p.Kalman_filter(result_center+speed*pre_time);
+//        //speed=kalman_v.Kalman_filter(speed);
+//        x_c1=to_string(speed.x),x_c2=to_string(speed.y);
+//        result_center=Point2f((float)(record_history[record_history.size()-1].center.x),(float)(record_history[record_history.size()-1].center.y));
+//        result_center=(result_center+speed*pre_time);
+//        //result_center=kalman_p.Kalman_filter(result_center);
+
+        result_center=kalman_p.Kalman_filter(record_history[record_history.size()-1].center);
+        Point last_result_center=Point2f((last_result[0].x+last_result[1].x+last_result[2].x+last_result[3].x)/4,(last_result[0].y+last_result[1].y+last_result[2].y+last_result[3].y)/4);
 
 
 
+        int x_min_error=10;
+        int x_max_error=100;
+        int y_error=1;
+        Point2f original_center=record_history[record_history.size()-1].center;
+        if(abs(result_center.x-original_center.x)<x_min_error)
+        {
+            result_center.x=original_center.x;
+        }
+
+        if(result_center.x-original_center.x>x_max_error)
+        {
+            result_center.x=original_center.x+x_max_error;
+        }
+
+        if(result_center.x-original_center.x<-x_max_error)
+        {
+            result_center.x=original_center.x-x_max_error;
+        }
+        if(result_center.y-original_center.y>y_error)
+        {
+            result_center.y=original_center.y+y_error;
+        }
+        if(result_center.y-original_center.y<-y_error)
+        {
+            result_center.y=original_center.y-y_error;
+        }
+
+        //result_center.y=original_center.y;
+        
 
 
 //        result_center=Kalman_filter(&KF,result_center );
@@ -319,7 +357,7 @@ void Forecast::Init()
             result.emplace_back(Point2f(result_center.x+vec_distribution[2*i], result_center.y+vec_distribution[2*i+1]));
             //k_result.emplace_back(Point2f(k_center.x+vec_distribution[2*i], k_center.y+vec_distribution[2*i+1]));
         }
-
+        last_result=result;
         //调换四个顶点顺序，使其符合solvepnp要求。如果装甲板输出结果已经排序，此处不需要。
         // Point2f p[4]{*result.begin(),*(result.begin()+1),*(result.begin()+2),*(result.begin()+3)};
         // std::sort(p, p + 4, [](const Point2f & p1, const Point2f & p2) {return p1.x < p2.x; });
@@ -348,17 +386,10 @@ void Forecast::Init()
 
 #ifdef DEBUG
 
-
-
-
        line(show,original[0],original[1],Scalar(0,255,0),1);
        line(show,original[1],original[2],Scalar(0,255,0),1);
        line(show,original[2],original[3],Scalar(0,255,0),1);
        line(show,original[3],original[0],Scalar(0,255,0),1);
-
-
-
-
 
 //       line(show,result_limited[0],result_limited[1],Scalar(255,255,0),1);
 //       line(show,result_limited[1],result_limited[2],Scalar(255,255,0),1);
@@ -371,7 +402,9 @@ void Forecast::Init()
        line(show,result[1],result[2],Scalar(0,0,254),2);
        line(show,result[2],result[3],Scalar(0,0,254),2);
        line(show,result[3],result[0],Scalar(0,0,254),2);
-       String s=x_c1+"x2+"+x_c2+"x1+"+x_c3;
+       //x_c1=to_string(x_min_error);
+       //x_c2=to_string(x_max_error);
+       String s="min_x: "+x_c1+" max_x: "+x_c2;
 
        putText(show,s,Point(100,100),FONT_HERSHEY_SIMPLEX,1,Scalar(255,255,255),2);
 
@@ -396,7 +429,9 @@ void Forecast::Init()
 }
 double Forecast::my_gsl(data d, double aim_time)
 {
-    int time_resize=1;
+    int time_resize=100;
+    aim_time/=time_resize;
+
     const size_t n = d.n; // 样本数量
     const size_t p = 3; // 参数数量
     //double x[n] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
@@ -406,7 +441,7 @@ double Forecast::my_gsl(data d, double aim_time)
     gsl_matrix *T = gsl_matrix_alloc(n, p);
     gsl_vector *Y = gsl_vector_alloc(n);
     for (int i = 0; i < n; i++) {
-        double ti = d.t[i];
+        double ti = d.t[i]/time_resize;
         gsl_matrix_set(T, i, 0, ti * ti);
         gsl_matrix_set(T, i, 1, ti);
         gsl_matrix_set(T, i, 2, 1.0);
@@ -448,7 +483,7 @@ double Forecast::my_gsl(data d, double aim_time)
     auto a=gsl_vector_get(beta, 0);
     auto b=gsl_vector_get(beta, 1);
     auto c=gsl_vector_get(beta, 2);
-    x_c1=to_string(a),x_c2=to_string(b),x_c3=to_string(c);
+    x_c1=to_string(a),x_c2=to_string(b),x_c3=to_string(c),x_t=to_string(aim_time);
     // 释放内存
     gsl_matrix_free(T);
     gsl_vector_free(Y);
@@ -485,9 +520,10 @@ double Forecast::my_gsl(data d, double aim_time)
     int temp_time=aim_time;
     temp_time=temp_time%max_time;
     aim_time=temp_time;
+    aim_time+=pre_time;
 //    //****
      //cout<<"\n\n                                     aim_time"<<aim_time<<endl;
-     aim_time+=pre_time;
+
      //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //cout<<"\n\n                                     pre_time"<<pre_time<<endl<<"                                     aim_time:"<<aim_time<<endl;
      //result_center=Point2f(gsl_compute(p_gsl[0],d[0],aim_time,weight[0]),gsl_compute(p_gsl[1],d[1],aim_time,weight[1]));

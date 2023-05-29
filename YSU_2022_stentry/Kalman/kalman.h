@@ -15,8 +15,12 @@ public:
     Kalman();
     void Kalman_init(double Q=0.00001,double R=0.1);
     Point Kalman_filter( Point measure_point);
+    Mat measurement;
 private:
     unique_ptr<KalmanFilter> KF;//unique需要用std::move进行传参
+    double anti_factor;
+    Point last_point;
+    bool is_jump;
 };
 
 

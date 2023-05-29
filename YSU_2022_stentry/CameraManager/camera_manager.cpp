@@ -15,9 +15,9 @@ int CameraManager::InitCamera()
 
     iplImage = NULL;
     channel=3;
-    explore_time=10000;
-    picWidth=960;
-    picHeight=720;
+    explore_time=6000;
+    picWidth=1280;
+    picHeight=1024;
     error_num=0;
     //3.27测试视频输入
 #ifdef read_from_avi
