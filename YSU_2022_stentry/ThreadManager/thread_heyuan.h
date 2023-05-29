@@ -44,7 +44,9 @@ private:
     std::vector<cv::Point2f> buffer_points[BUFFER_LENGTH];
     std::mutex locker_point[BUFFER_LENGTH];
 
+
+    double y_p_recv[BUFFER_LENGTH][4];//pit_angle;pit_speed;yaw_angle;yaw_speed;(time)
     int i,j,j2;
     
 
-}
+};

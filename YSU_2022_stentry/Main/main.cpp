@@ -2,18 +2,18 @@
 
 #ifndef DEBUG
 #include "Main/headfiles.h"
-#include "ThreadManager/thread_manager.h"
+#include "ThreadManager/thread_heyuan.h"
 
 int main()
 {
-    ThreadManager* thread_manager_ptr = new ThreadManager();
+    // threadManager* thread_manager_ptr = new ThreadManager();
 
-    ThreadManager thread_manager = *thread_manager_ptr;
+    threadManager thread_manager;
 
-    std::thread producer( &ThreadManager::Produce,&thread_manager );
+    std::thread producer( &threadManager::Produce,&thread_manager );
 
-    std::thread consumer( &ThreadManager::Consume,&thread_manager );
-    std::thread communication( &ThreadManager::Communicate,&thread_manager );
+    std::thread consumer( &threadManager::Consume,&thread_manager );
+    std::thread communication( &threadManager::Communicate,&thread_manager );
 
     producer.join();
     consumer.join();

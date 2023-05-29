@@ -38,15 +38,17 @@ threadManager::threadManager():
 void threadManager::Produce(){
     int camera_base_time = static_cast<int>(1000000/Camera_FPS_);
     int sleep_time;
+    bool IsRecv = false;
     while(1) {
-        if (++i % BUFFER_LENGTH_ == 0){
-            i = 0
+        if (++i % BUFFER_LENGTH == 0){
+            i = 0;
         }
-        locker[offset].lock();
+        locker[i].lock();
 
         auto start_time = std::chrono::system_clock::now();
-        p_camera_manager_ -> ReadImage(buffer_mat[offset]);
-        locker[offset].unlock();
+        p_camera_manager_ -> ReadImage(buffer_mat[i]);
+        p_communication_->RecvMcuData(y_p_recv[i],IsRecv);
+        locker[i].unlock();
 
         auto end_time = std::chrono::system_clock::now();
         sleep_time = camera_base_time - (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
@@ -74,23 +76,24 @@ void threadManager::Consume(){
         buffer_points[j] = p_armor_detector_ -> DetectObjectArmor(buffer_mat[j]);
         // p_armor_detector_ -> Show();
         locker_point[j].unlock();
-        locker[j].unlock();
+        locker[j].unlock();`
     }
 }
 
 
 void threadManager::subConsume(){
-    //通过camera的fps控制，自动实现每一帧之间等△T。推理比camera快，会在lock的时候等camera，同理后处理等推理，因此kalman时只需要下标 +（1*参数），不需要传递sys_time。
+    //通过camera的fps控制，自动实现每一帧之间等△T。
+    //推理比camera快，会在lock的时候等camera，同理后处理等推理，因此kalman时只需要下标 +（1*参数），不需要知道单位1的确切含义，因此不需要传递sys_time。
     //此处接口未适配去掉system time。
     while(1){
         if(++j2 % BUFFER_LENGTH == 0){
             j2 = 0;
         }
         locker_point[j2].lock();
-        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j] ,y_p_recv[j]);
+//        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j2] ,Aaaaa[j2]);
         locker_point[j2].unlock();
 
-        p_communication_ ->UpdateData(p_angle_solver_ -> SolveAngle(tmp));
+        p_communication_ ->UpdateData(p_angle_solver_ -> SolveAngle(buffer_points[j2] ,y_p_recv[j2]));
         p_communication_ ->shoot_err(p_angle_solver_ -> shoot_get());
     }
 }
@@ -100,11 +103,13 @@ void threadManager::subConsume(){
 void threadManager::Communicate(){ //传递信息就直接修改p_communication_->Infantry中对应的数值即可
     int communit_base_time = static_cast<int>(1000000/Communit_FPS_);
     int sleep_time;
+
     while(1)
     {
         auto start_time = std::chrono::system_clock::now();
 
         p_communication_->communication(p_communication_ -> Infantry);
+
 
         auto end_time = std::chrono::system_clock::now();
         sleep_time = communit_base_time - (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());

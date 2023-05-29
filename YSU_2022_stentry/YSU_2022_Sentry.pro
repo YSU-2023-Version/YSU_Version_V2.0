@@ -54,7 +54,7 @@ HEADERS += \
     GafSolver/gimbal_transform_tool.h \
     GafSolver/iterative_projectile_tool.h \
     GafSolver/projectile_solver_interface.h \
-    ThreadManager/thread_manager.h \
+    ThreadManager/thread_heyuan.h \
     ArmorDetector/armor_detector.h \
     RuneDetector/rune_detector.h \
     CameraManager/camera_manager.h \
@@ -79,7 +79,7 @@ SOURCES += \
     GafSolver/gaf_projectile_solver.cpp \
     GafSolver/gimbal_transform_tool.cpp \
     GafSolver/iterative_projectile_tool.cpp \
-    ThreadManager/thread_manager.cpp \
+    ThreadManager/thread_heyuan.cpp \
     ArmorDetector/armor_detector.cpp \
     RuneDetector/rune_detector.cpp \
     CameraManager/camera_manager.cpp \
