@@ -286,6 +286,7 @@ vector<DetectRect>& Yolov5::infer2res(cv::Mat& src_){
             temp_rect.points.push_back(cv::Point2f(x_2, y_2));
             temp_rect.points.push_back(cv::Point2f(x_3, y_3));
             temp_rect.points.push_back(cv::Point2f(x_4, y_4));
+            temp_rect.r_rect = cv::minAreaRect(temp_rect.points);
             temp_rect.cen_p = cv::Point2f((x_1 + x_2 + x_3 + x_4) / 4.0, (y_1 + y_2 + y_3 + y_4) / 4.0);
             temp_rect.class_id = box_class;
             temp_rect.class_p = class_p;

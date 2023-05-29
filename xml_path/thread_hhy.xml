@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!--2022ysu-eagle 多线程部分参数调整-->
+<opencv_storage>
+<Communit_FPS_>100</Communit_FPS_><!--通信频率-->
+<Camera_FPS_>100</Camera_FPS_><!--摄像头频率，视觉如果比摄像头快，就会等摄像头。视觉如果慢，就会等视觉-->
+</opencv_storage>

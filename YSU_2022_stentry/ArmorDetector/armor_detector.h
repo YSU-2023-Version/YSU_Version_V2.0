@@ -29,10 +29,10 @@ class ArmorDetector
 public:
     friend cv::VideoWriter;
     ArmorDetector();
-    vector<cv::Point2f>& DetectObjectArmor();
+    vector<cv::Point2f>& DetectObjectArmor(cv::Mat &frame);
     void Yolov2Res();
     void InitArmor();
-    void LoadImage(cv::Mat &frame);
+
     void ScreenArmor();
     void ClearAll();
     void Show();
@@ -46,7 +46,7 @@ private:
 
     Yolov5* yolov5_detector_;                                                     // yolox识别器
     std::vector<DetectRect> detect_res_armor_;                                    // yolox模型识别到的框，所有信息整合到了DetectRect结构体
-    cv::Mat src_image_;                                                           // 输入图像
+    cv::Mat& src_image_;                                                           // 输入图像
     cv::Mat warpPerspective_dst;                                                  // 预处理输出图像
     cv::Point2f Perspective_Transformation_src[4];                                // 
     cv::Point2f Perspective_Transformation_dst[4];                                // ????
@@ -105,7 +105,6 @@ private:
     vector<unique_ptr<Kalman>> p_kal;
 
     unique_ptr<YSU_SVM> p_svm;
-    cv::Mat src_image_copy; //????????????????
     cv::Mat matsvm;
     cv::Mat warpPerspective_mat=cv::Mat::zeros(3,3,CV_32FC1);//??????
 
