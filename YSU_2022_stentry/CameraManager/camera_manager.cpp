@@ -144,6 +144,8 @@ cv::Mat CameraManager::ReadImage(cv::Mat& image)
 #ifndef read_from_avi
         if(CameraGetImageBuffer(hCamera,&sFrameInfo,&pbyBuffer,1000) == CAMERA_STATUS_SUCCESS)
         {//摄像头连接成功，返回读图结果。
+            cout << "demo";
+
             CameraImageProcess(hCamera, pbyBuffer, g_pRgbBuffer,&sFrameInfo);
 
             iplImage = cvCreateImageHeader(cvSize(sFrameInfo.iWidth,sFrameInfo.iHeight),IPL_DEPTH_8U,channel);
@@ -151,7 +153,6 @@ cv::Mat CameraManager::ReadImage(cv::Mat& image)
             //以下两种方式都可以显示图像或者处理图像
  
             image = cv::cvarrToMat(iplImage);
-   
             //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
             //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
             CameraReleaseImageBuffer(hCamera,pbyBuffer);

@@ -40,6 +40,7 @@ private:
     int Vision_FPS_;
     cv::Mat buffer_mat[BUFFER_LENGTH];
     std::mutex locker[BUFFER_LENGTH];
+    double sys_time[BUFFER_LENGTH];
 
     std::vector<cv::Point2f> buffer_points[BUFFER_LENGTH];
     std::mutex locker_point[BUFFER_LENGTH];

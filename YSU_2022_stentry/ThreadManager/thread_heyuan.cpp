@@ -44,16 +44,16 @@ void threadManager::Produce(){
             i = 0;
         }
         locker[i].lock();
-
         auto start_time = std::chrono::system_clock::now();
-        p_camera_manager_ -> ReadImage(buffer_mat[i]);
-        p_communication_->RecvMcuData(y_p_recv[i],IsRecv);
+        p_camera_manager_ -> ReadImage(buffer_mat[i]); //
+        //p_communication_->RecvMcuData(y_p_recv[i],IsRecv);
+        cout << "demo1" << endl;
+        getSystime(sys_time[i]);
         locker[i].unlock();
-
         auto end_time = std::chrono::system_clock::now();
-        sleep_time = camera_base_time - (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
+        sleep_time = camera_base_time * 1e6 - (std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count());
         if (sleep_time > 0) {
-            std::this_thread::sleep_for(std::chrono::microseconds(sleep_time));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(sleep_time));
         }
     }
 }
@@ -69,14 +69,16 @@ void threadManager::Consume(){
         if(++j % BUFFER_LENGTH == 0){
             j = 0;
         }
-
         //两块buffer区均采用地址传递，减少不必要的copy
         locker[j].lock();
         locker_point[j].lock();
-        buffer_points[j] = p_armor_detector_ -> DetectObjectArmor(buffer_mat[j]);
+        cout << "demo0" << endl;
+
+        // buffer_points[j] = p_armor_detector_ -> DetectObjectArmor(buffer_mat[j]);
         // p_armor_detector_ -> Show();
+
         locker_point[j].unlock();
-        locker[j].unlock();`
+        locker[j].unlock();
     }
 }
 
@@ -90,7 +92,7 @@ void threadManager::subConsume(){
             j2 = 0;
         }
         locker_point[j2].lock();
-//        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j2] ,Aaaaa[j2]);
+        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j2] ,y_p_recv[j2]);
         locker_point[j2].unlock();
 
         p_communication_ ->UpdateData(p_angle_solver_ -> SolveAngle(buffer_points[j2] ,y_p_recv[j2]));
