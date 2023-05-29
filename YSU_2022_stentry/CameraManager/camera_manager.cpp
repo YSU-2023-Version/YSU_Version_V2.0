@@ -114,7 +114,7 @@ bool CameraManager::isOpen(){
     return this->iStatus;
 }
 
-Mat CameraManager::ReadImage()
+void CameraManager::ReadImage(cv Mat& image)
 {   //cout<<"CameraConnectTest:"<<CameraConnectTest(hCamera)<<endl;
 
     //3.27更换视频输入
@@ -129,16 +129,16 @@ Mat CameraManager::ReadImage()
         cout<<"sham"<<endl;
         return sham_img;
     }
-    resize(imag,Iimag,Size(960,720),INTER_LINEAR);
+    resize(imag,image,Size(960,720),INTER_LINEAR);
     //cvtColor(Iimag,Iimag,COLOR_BGR2GRAY);
     //imshow("imag2",Iimag);
     //threshold(Iimag,Iimag,0,255,THRESH_OTSU);
     //adaptiveThreshold(Iimag,Iimag,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY_INV,155,17);
     //cvtColor(Iimag,Iimag,CV_GRAY2BGR);//进行变换
 
-    imshow("imag",Iimag);
+    imshow("imag",image);
     waitKey(1);
-    return Iimag;
+    return;
 #endif
     //注释下列代码
 #ifndef read_from_avi
@@ -150,14 +150,13 @@ Mat CameraManager::ReadImage()
             cvSetData(iplImage,g_pRgbBuffer,sFrameInfo.iWidth*channel);//此处只是设置指针，无图像块数据拷贝，不需担心转换效率
             //以下两种方式都可以显示图像或者处理图像
  
-            Iimag=cv::cvarrToMat(iplImage);
+            image = cv::cvarrToMat(iplImage);
    
             //在成功调用CameraGetImageBuffer后，必须调用CameraReleaseImageBuffer来释放获得的buffer。
             //否则再次调用CameraGetImageBuffer时，程序将被挂起一直阻塞，直到其他线程中调用CameraReleaseImageBuffer来释放了buffer
             CameraReleaseImageBuffer(hCamera,pbyBuffer);
-            //cout<<"cols"<<Iimag.cols<<endl;
 
-            return Iimag;
+            return image;
         }
    else{
 //        cout<<"warning:camera loading failed..."<<endl;//摄像头掉线保护，返回欺骗图
