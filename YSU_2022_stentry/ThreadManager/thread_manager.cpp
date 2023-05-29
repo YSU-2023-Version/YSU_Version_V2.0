@@ -6,6 +6,7 @@
 #include "RuneDetector/rune_detector.h"
 // 是否使用预测
 #define ISFORECAST
+
 ThreadManager::ThreadManager():
     p_armor_detector_(std::make_unique<ArmorDetector>()),
     p_forecast_(std::make_unique<Forecast>()),
@@ -14,125 +15,117 @@ ThreadManager::ThreadManager():
     p_communication_(std::make_unique<Communication>()),
     p_run_detector_(std::make_unique<RuneDetector>()),
     i(0),
-    j(0)
-{}
-
-void ThreadManager::InitThreadManager(){
-    std::string xml_path = "../xml_path/thread.xml";
-    cv::FileStorage fr;
-    fr.open(xml_path,cv::FileStorage::READ);
-    while(!fr.isOpened()){
-        std::cout << "armor_xml floading failed..." << std::endl;
-        fr=cv::FileStorage(xml_path, cv::FileStorage::READ);
-        fr.open(xml_path, cv::FileStorage::READ);
+    j(0),
+    j2(0)
+{
+    if(BUFFER_LENGTH < 3){
+        std::cout << "buffer is too short, set at least 3"<<std::endl;
+        exit(1);
     }
-    fr["FPS"] >> FPS_count_; // 读取fps值
-    this->base_time_ = 1000 / FPS_count_; // 时间的单位是ms
-}
-
-void ThreadManager::Init(){
-    this->InitThreadManager();
     p_camera_manager_ -> InitCamera();
     p_armor_detector_ -> InitArmor();
     p_communication_ -> InitCom();
     p_angle_solver_ ->InitAngle();
-    p_forecast_->Init();
-    p_communication_->open();
-    memset(locker, false, sizeof locker);
+    p_forecast_ -> Init();
+    p_communication_ -> open();
+
+
+    std::string xml_path = "../xml_path/thread_hhy.xml";
+    cv::FileStorage fr;
+    fr.open(xml_path,cv::FileStorage::READ);
+    while(!fr.isOpened()){
+        std::cout << "armor_xml loading failed..." << std::endl;
+        fr=cv::FileStorage(xml_path, cv::FileStorage::READ);
+        fr.open(xml_path, cv::FileStorage::READ);
+    }
+    fr["Communit_FPS_"] >> Communit_FPS_; 
+    fr["Camera_FPS_"] >> Camera_FPS_;
 }
 
 void ThreadManager::Produce(){
-    while(1)
-    {
-        auto t1 = std::chrono::high_resolution_clock::now();
-        bool IsRecv=false;
-
-//        p_communication_->RecvMcuData(y_p_recv[i],IsRecv);
-//        if(!IsRecv)
-//        {
-//            y_p_recv[i][0]=y_p_recv[i][1]=y_p_recv[i][2]=y_p_recv[i][3]=0;
-//        }
-
-        buffer[i] = p_camera_manager_ -> ReadImage();
-        getSystime(sys_time[i]);
-        locker[i] = true;
-        condition.notify_one(); //通知wait()函数，解除阻止
-        if( (++i) % 30 == 0 )
-        {
+    int camera_base_time = static_cast<int>(1000000/Camera_FPS_);
+    int sleep_time;
+    while(1) {
+        if (++i % BUFFER_LENGTH == 0){
             i = 0;
         }
-        auto t2 = std::chrono::high_resolution_clock::now();
-        // 稳定帧率每秒100帧
-        int time = 10 - ((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count());
-        auto start_time = std::chrono::steady_clock::now();
-        auto end_time = start_time + std::chrono::milliseconds(time);
-        // 使用循环和 std::this_thread::yield 函数来让当前线程让出CPU，直到指定的时间到达为止。
-        while (std::chrono::steady_clock::now() < end_time) {
-            std::this_thread::yield();
+
+        locker[i].lock();
+
+        bool IsRecv=false;
+
+        p_communication_->RecvMcuData(y_p_recv[i],IsRecv);
+        if(!IsRecv)
+        {
+            y_p_recv[i][0]=y_p_recv[i][1]=y_p_recv[i][2]=y_p_recv[i][3]=0;
         }
-        auto t3 = std::chrono::high_resolution_clock::now();
-        // std::cout << "ProducerFPS: " << 1000/(static_cast<std::chrono::duration<double, std::milli>>(t3 - t1)).count() << std::endl;
-        // std::cout << "ProducerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
+
+        auto start_time = std::chrono::system_clock::now();
+        p_camera_manager_ -> ReadImage(buffer_mat[i]);
+        locker[i].unlock();
+
+        auto end_time = std::chrono::system_clock::now();
+        sleep_time = camera_base_time - (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
+        if (sleep_time > 0) {
+            std::this_thread::sleep_for(std::chrono::microseconds(sleep_time));
+        }
     }
-
 }
-
 
 void ThreadManager::Consume(){
-    //！cout<<"consume is run"<<endl;
-    while(1)//图像处理，可根据实际需求在其中添加，仅需保证consume处理速度>communicate即可。
-    {
-        auto t1 = std::chrono::high_resolution_clock::now();
-        if(i == j)
-        {
-            std::unique_lock <std::mutex> lock(mutex);
-            condition.wait(lock);
-        }
-        // 测试多线程锁的问题
-//        puts("");
-//        for (int k = 0;k < 30;k++) {
-//            cout << locker[k] << " ";
-//        }
-//        puts("");
-        p_armor_detector_ -> LoadImage(buffer[j]);
-        locker[j] = false;
-        //if(y_p_recv[j][3]-0<0.1)
-        //cout<<"                 data"<<buffer[j]<<endl;
-#ifndef ISFORECAST
-        p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(  p_armor_detector_ -> DetectObjectArmor(),y_p_recv[j]  )    );
-#else
-         p_communication_ ->UpdateData( p_angle_solver_ ->SolveAngle(p_forecast_->forcast ( p_armor_detector_ -> DetectObjectArmor(),sys_time[j] ,y_p_recv[j] ),y_p_recv[j]   )  );
-#endif
-        p_communication_ ->shoot_err(p_angle_solver_ ->shoot_get());
-        cout<<"                         buffer_size:"<<buffer[1].empty() <<endl;
-        cout<<"                         shoot_err:"<<p_angle_solver_ ->shoot_get()<<endl;
-        // std::promise<Point2f> shoot;
+    //一个子线程，用于后处理。
+    auto sub_consumer = std::thread(&ThreadManager::subConsume,this);
+    sub_consumer.detach();
 
-        // p_run_detector_ -> getShootAim(buffer[i], sys_time[j], shoot);
-        // debug
-        p_armor_detector_ -> Show();
-        //p_armor_detector_ -> baocun();
-        if( (++j) % 30 == 0 )
-        {
+    int vision_base_time = static_cast<int>(1000000/Vision_FPS_);
+    int sleep_time;
+    while(1){
+        if(++j % BUFFER_LENGTH == 0){
             j = 0;
         }
-        auto t2 = std::chrono::high_resolution_clock::now();
-        //！std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
-        //！std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
-        //std::cout << "ConsumerTime: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
-        std::cout << "ConsumerFPS: " << 1000/((static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count()) << std::endl;
+
+        //两块buffer区均采用地址传递，减少不必要的copy
+        locker[j].lock();
+        locker_point[j].lock();
+        buffer_points[j] = p_armor_detector_ -> DetectObjectArmor(buffer_mat[j]);
+        // p_armor_detector_ -> Show();
+        locker_point[j].unlock();
+        locker[j].unlock();
     }
 }
+
+
+void ThreadManager::subConsume(){
+    //通过camera的fps控制，自动实现每一帧之间等△T。推理比camera快，会在lock的时候等camera，同理后处理等推理，因此kalman时只需要下标 +（1*参数），不需要传递sys_time。
+    //此处接口未适配去掉system time。
+    while(1){
+        if(++j2 % BUFFER_LENGTH == 0){
+            j2 = 0;
+        }
+        locker_point[j2].lock();
+        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j] ,y_p_recv[j]);
+        locker_point[j2].unlock();
+
+        p_communication_ ->UpdateData(p_angle_solver_ -> SolveAngle(tmp, y_p_recv[j]));
+        p_communication_ ->shoot_err(p_angle_solver_ -> shoot_get());
+    }
+}
+
+
 
 void ThreadManager::Communicate(){ //传递信息就直接修改p_communication_->Infantry中对应的数值即可
+    int communit_base_time = static_cast<int>(1000000/Communit_FPS_);
+    int sleep_time;
     while(1)
     {
-        cout<<"comst"<<endl;
+        auto start_time = std::chrono::system_clock::now();
 
-
-        // p_communication_->ref_amorAttackMsg(p_communication_->Infantry.amorAttackmsg.yawErr, p_communication_->Infantry.amorAttackmsg.pitchErr,0, p_communication_->Infantry.amorAttackmsg.shootFlag, p_communication_->Infantry.amorAttackmsg.holderflag, true);
         p_communication_->communication(p_communication_ -> Infantry);
+
+        auto end_time = std::chrono::system_clock::now();
+        sleep_time = communit_base_time - (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
+        if (sleep_time > 0) {
+            std::this_thread::sleep_for(std::chrono::microseconds(sleep_time));
+        }
     }
 }
-
-

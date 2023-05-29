@@ -14,7 +14,7 @@ public:
     void SetExplore(int explore);
     void SetPicSize(int height,int width);
     int InitCamera();
-    void ReadImage(cv Mat& image);
+    cv::Mat ReadImage(cv::Mat& image);
     bool isOpen();
 private:
     // Mat                     Iimag;

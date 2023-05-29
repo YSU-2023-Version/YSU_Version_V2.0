@@ -114,7 +114,7 @@ bool CameraManager::isOpen(){
     return this->iStatus;
 }
 
-void CameraManager::ReadImage(cv Mat& image)
+cv::Mat CameraManager::ReadImage(cv::Mat& image)
 {   //cout<<"CameraConnectTest:"<<CameraConnectTest(hCamera)<<endl;
 
     //3.27更换视频输入

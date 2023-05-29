@@ -87,7 +87,7 @@ void threadManager::subConsume(){
             j2 = 0;
         }
         locker_point[j2].lock();
-        auto &tmp = p_forecast_-> forcast(buffer_points[j2]);
+        auto &tmp = p_forecast_-> forcast(buffer_points[j2], sys_time[j] ,y_p_recv[j]);
         locker_point[j2].unlock();
 
         p_communication_ ->UpdateData(p_angle_solver_ -> SolveAngle(tmp));

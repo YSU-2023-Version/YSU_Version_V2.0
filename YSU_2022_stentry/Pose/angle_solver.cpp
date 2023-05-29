@@ -38,7 +38,7 @@ void AngleSolver::InitAngle()
 }
 
 
-double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_,double y_p_recv[4])
+double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_, double y_p_recv[4])
 {
     if(!(object_armor_points_[0] == Point2f(0, 0) && object_armor_points_[1] == Point2f(0, 0) && object_armor_points_[2] == Point2f(0, 0) && object_armor_points_[3] == Point2f(0, 0)))
     {

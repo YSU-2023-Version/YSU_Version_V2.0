@@ -46,7 +46,7 @@ private:
 
     Yolov5* yolov5_detector_;                                                     // yolox识别器
     std::vector<DetectRect> detect_res_armor_;                                    // yolox模型识别到的框，所有信息整合到了DetectRect结构体
-    cv::Mat& src_image_;                                                           // 输入图像
+    cv::Mat src_image_;                                                           // 输入图像
     cv::Mat warpPerspective_dst;                                                  // 预处理输出图像
     cv::Point2f Perspective_Transformation_src[4];                                // 
     cv::Point2f Perspective_Transformation_dst[4];                                // ????

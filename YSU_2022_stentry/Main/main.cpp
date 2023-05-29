@@ -6,8 +6,9 @@
 
 int main()
 {
-    ThreadManager thread_manager;
-    thread_manager.Init();
+    ThreadManager* thread_manager_ptr = new ThreadManager();
+
+    ThreadManager thread_manager = *thread_manager_ptr;
 
     std::thread producer( &ThreadManager::Produce,&thread_manager );
 

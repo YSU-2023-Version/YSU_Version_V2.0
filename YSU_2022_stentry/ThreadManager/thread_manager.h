@@ -13,7 +13,7 @@
 #include "GafSolver/gimbal_transform_tool.h"
 #include "GafSolver/gaf_projectile_solver.h"
 
-
+#define BUFFER_LENGTH 5
 
 class ThreadManager
 {
@@ -27,6 +27,8 @@ public:
 
 
 private:
+    void subConsume();
+
     void InitThreadManager();
 
 
@@ -44,14 +46,23 @@ private:
     std::unique_ptr<RuneDetector> p_run_detector_;           //
 
     double y_p_recv[30][4];//pit_angle;pit_speed;yaw_angle;yaw_speed;(time)
-    Mat buffer[30];
     double sys_time[30];
-    bool locker[30];
-    int i,j;
     std::mutex mutex;
     std::condition_variable condition; //条件变量对象
     vector<Point2d> object_armor_2Dpoints_;
     double sys_now;
+
+
+    int Communit_FPS_;
+    int Camera_FPS_;
+    int Vision_FPS_;
+    cv::Mat buffer_mat[BUFFER_LENGTH];
+    std::mutex locker[BUFFER_LENGTH];
+
+    std::vector<cv::Point2f> buffer_points[BUFFER_LENGTH];
+    std::mutex locker_point[BUFFER_LENGTH];
+
+    int i,j,j2;
 
 
 };
