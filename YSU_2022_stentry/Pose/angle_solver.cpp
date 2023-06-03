@@ -3,7 +3,7 @@
 #include <Kalman/kalman.h>
 // #define DEBUG // 打开调试模式，输出yam轴pitch轴误差
 
-AngleSolver::AngleSolver()
+AngleSolver::AngleSolver():p_forecast_(std::make_unique<Forecast>())
 {
 
 }
@@ -37,24 +37,55 @@ void AngleSolver::InitAngle()
     projectile_tansformoss_tool = std::make_shared<rmoss_projectile_motion::GimbalTransformTool>(gaf_solver);
 }
 
+inline void getMiddle(const std::vector<Point2f>& obj,Point2f& res){
+    res = Point2f((obj[0].x+obj[1].x+obj[2].x+obj[3].x)/4,
+            (obj[0].y+obj[1].y+obj[2].y+obj[3].y)/4);
+}
+inline void getTranslationObj(const Point2f& oldMiddle,const Point2f& newMiddle,
+                              const vector<Point2f>& OldObj, vector<Point2f> &newObj){
+    newObj.clear();
+    for (auto &point:OldObj){
+        newObj.emplace_back(
+                    Point2f(point.x-oldMiddle.x+newMiddle.x,
+                            point.y-oldMiddle.y+newMiddle.y));
+    }
+}
 
-double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_, double y_p_recv[4])
-{
-    if(!(object_armor_points_[0] == Point2f(0, 0) && object_armor_points_[1] == Point2f(0, 0) && object_armor_points_[2] == Point2f(0, 0) && object_armor_points_[3] == Point2f(0, 0)))
+inline void showForecast(cv::Point2f& src,std::vector<cv::Point2f>&src_obj,
+                         cv::Point2f& forecast,std::vector<cv::Point2f>&forecast_obj,
+                         cv::Mat &img){
+    circle(img,src,5,Scalar(0,0,255));
+    circle(img,forecast,5,Scalar(0,255,0));
+    for(int i=0; i<4 ; i++){
+        line(img,src_obj[i],src_obj[(i+1)%4],Scalar(0,0,255),3);
+        line(img,forecast_obj[i],forecast_obj[(i+1)%4],Scalar(0,255,0),3);
+    }
+    imshow("forecast",img);
+    waitKey(1);
+}
+
+double * AngleSolver::SolveAngle(vector<Point2f>& observation_obj){
+    if(!(observation_obj[0] == Point2f(0, 0)
+         && observation_obj[1] == Point2f(0, 0)
+         && observation_obj[2] == Point2f(0, 0)
+         && observation_obj[3] == Point2f(0, 0)))
     {
-        if(object_armor_points_[0] == Point2f(1, 0))
-        {
-            cout<<"                             114514"<<endl;
-        }
+
+     getMiddle(observation_obj,middle);
+     p_forecast_ ->getReal(middle);
+     auto &forecast_middel = p_forecast_ -> getNextForecast();
+     getTranslationObj(middle,forecast_middel , observation_obj, object_armor_points_ );
+
+
+//    cv::Mat img;
+//    showForecast(middle,observation_obj,forecast_middel,object_armor_points_,img);
+
+
     cv::solvePnP(obj,object_armor_points_,cam,disCoeffD,rVec,tVec,false,SOLVEPNP_ITERATIVE);
     _xErr = atan(tVec.at<double>(0, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;//+5
     _yErr = atan(tVec.at<double>(1, 0) / tVec.at<double>(2, 0)) / 2 / CV_PI * 360;
 
-    //cout<<"_xErr:"<<_xErr<<endl;
-    //cout<<"_yErr:"<<_yErr<<endl;
 
-
-    //gravity_comp(); // 之前的重力补偿·
     if(_yErr < 18 && _yErr > -18)
     {
         p_y_err[0] = _xErr;
@@ -87,12 +118,7 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_, double y
  //   gravity_comp();
 
     shoot=1;
-    //5.23新的重力补偿  -> 0   往上-90 往下+90 角度制
-    cout<<"recv_pitch_angle:"<<y_p_recv[0]<<endl;
-    cout<<"                                     distance"<<distance_3d<<endl;
-    float aim_angle = (y_p_recv[0]+p_y_err[1])*CV_PI/180;
-    cout<<"                                  y_p_recv[0]"<<y_p_recv[0]<<endl;
-    cout<<"                                  p_y_err[1]"<<p_y_err[1]<<endl;
+    float aim_angle = (p_y_err[1])*CV_PI/180;
     Point2f aim_pos = {(float)(cos(aim_angle)*distance_3d),(float)(sin(aim_angle)*distance_3d)};
     cout<<"aim_pos"<<aim_pos<<endl;
     //补偿后的角度
@@ -118,13 +144,12 @@ double * AngleSolver::SolveAngle(vector<Point2f>& object_armor_points_, double y
     //std::cout << "yaw=" << p_y_err[0] << std::endl;
 #endif // DEBUG
     }
-
-
     else
     {
         p_y_err[0] = 0;
         p_y_err[1] = 0;//top_min=-19
         shoot=0;
+        p_forecast_.reset();
     }
 
 

@@ -64,11 +64,9 @@ HEADERS += \
     Main/headfiles.h \
     Timer/Timer.h \
     Timer/Log.h \
-    Forecast/forecast.h \
-    Kalman/kalman.h \
-    SVM/svm.h \
-    Forecast/ysu_gsl.h
- #   Forecast/PID.h \
+    Kalman/kalman_heyuan.h \
+    SVM/svm.h
+
 
 
 
@@ -88,11 +86,8 @@ SOURCES += \
     Main/main.cpp \
     Pose/angle_solver.cpp \
     Timer/Timer.cpp \
-    Forecast/forecast.cpp \
-    Kalman/kalman.cpp \
-    SVM/svm.cpp \
-    Forecast/ysu_gsl.cpp
- #   Forecast/PID.cpp \
+    Kalman/kalman_heyuan.cpp \
+    SVM/svm.cpp
 
 
 

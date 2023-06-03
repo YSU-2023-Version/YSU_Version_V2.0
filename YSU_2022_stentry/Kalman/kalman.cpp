@@ -18,11 +18,11 @@ void Kalman::Kalman_init(double Q,double R)
 /*void Kalman_init(KalmanFilter* KF,double Q,double R)*/{
         KF->transitionMatrix = (Mat_<float>(4, 4) << 1, 0, trans_pretime_y, 0, 0, 1, 0, trans_pretime_x, 0, 0, 1, 0, 0, 0, 0, 1);  //转移矩阵A，第3个数字和8个数字决定跟随的程度，越大跟的越快
         //setIdentity是创建单位矩阵的，后面不带Scalar参数表示默认创建单位矩阵
-        setIdentity(KF->measurementMatrix);                                             //测量矩阵H
+        setIdentity(KF->measurementMatrix);                                           //测量矩阵H
         setIdentity(KF->processNoiseCov, Scalar::all(Q)); //0.00001                   //系统噪声方差矩阵Q
         setIdentity(KF->measurementNoiseCov, Scalar::all(R)); //0.1                   //测量噪声方差矩阵R
-        setIdentity(KF->errorCovPost, Scalar::all(1));                                  //后验错误估计协方差矩阵P
-        Kalman::measurement =Mat::zeros(measureNum, 1, CV_32F);                           //初始测量值x'(0)，因为后面要更新这个值，所以必须先定义
+        setIdentity(KF->errorCovPost, Scalar::all(1));                                //后验错误估计协方差矩阵P
+        Kalman::measurement =Mat::zeros(measureNum, 1, CV_32F);                       //初始测量值x'(0)，因为后面要更新这个值，所以必须先定义
         is_jump=false;
         last_point=Point(0,0);
         //Kalman::measurement.at<float>(0) = first_x;
@@ -59,7 +59,6 @@ Point Kalman::Kalman_filter(Point measure_point)
         }
         else
         {
-
             anti_kalmanPoint.x = measure_point.x;
         }
 
